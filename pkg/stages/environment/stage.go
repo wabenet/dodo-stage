@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/oclaussen/dodo/pkg/stage"
+	"github.com/dodo/dodo-stage/pkg/stage"
 	"github.com/oclaussen/dodo/pkg/types"
 )
 

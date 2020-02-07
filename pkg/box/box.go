@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/dodo/dodo-stage/pkg/integrations/vagrantcloud"
 	"github.com/oclaussen/dodo/pkg/config"
-	"github.com/oclaussen/dodo/pkg/integrations/vagrantcloud"
 	"github.com/oclaussen/dodo/pkg/types"
 	"github.com/pkg/errors"
 )

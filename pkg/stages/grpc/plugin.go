@@ -1,9 +1,9 @@
 package grpc
 
 import (
+	"github.com/dodo/dodo-stage/pkg/stage"
+	"github.com/dodo/dodo-stage/proto"
 	"github.com/hashicorp/go-plugin"
-	"github.com/oclaussen/dodo/pkg/stage"
-	"github.com/oclaussen/dodo/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )

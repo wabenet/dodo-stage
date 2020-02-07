@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/dodo/dodo-stage/pkg/stage"
 	"github.com/hashicorp/go-plugin"
-	"github.com/oclaussen/dodo/pkg/stage"
 	"github.com/oclaussen/dodo/pkg/types"
 	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/pkg/errors"

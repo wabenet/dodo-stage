@@ -1,10 +1,10 @@
 package defaultchain
 
 import (
-	"github.com/oclaussen/dodo/pkg/stage"
-	"github.com/oclaussen/dodo/pkg/stages/environment"
-	"github.com/oclaussen/dodo/pkg/stages/generic"
-	"github.com/oclaussen/dodo/pkg/stages/grpc"
+	"github.com/dodo/dodo-stage/pkg/stage"
+	"github.com/dodo/dodo-stage/pkg/stages/environment"
+	"github.com/dodo/dodo-stage/pkg/stages/generic"
+	"github.com/dodo/dodo-stage/pkg/stages/grpc"
 	"github.com/oclaussen/dodo/pkg/types"
 
 	"github.com/pkg/errors"

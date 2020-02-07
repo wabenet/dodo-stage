@@ -1,8 +1,8 @@
 package generic
 
 import (
+	"github.com/dodo/dodo-stage/pkg/stage"
 	"github.com/mitchellh/mapstructure"
-	"github.com/oclaussen/dodo/pkg/stage"
 	"github.com/oclaussen/dodo/pkg/types"
 )
 

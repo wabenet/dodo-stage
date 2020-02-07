@@ -1,7 +1,10 @@
 package command
 
 import (
-	"github.com/oclaussen/dodo/pkg/stage"
+	"github.com/dodo/dodo-stage/pkg/stage"
+	"github.com/dodo/dodo-stage/pkg/stages/defaultchain"
+	"github.com/oclaussen/dodo/pkg/config"
+	"github.com/oclaussen/dodo/pkg/types"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -27,7 +30,6 @@ func NewUpCommand() *cobra.Command {
 		Short: "Create or start a stage",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configureLogging()
 			return withStage(args[0], func(s stage.Stage) error {
 				exist, err := s.Exist()
 				if err != nil {
@@ -56,7 +58,6 @@ func NewDownCommand() *cobra.Command {
 		Short: "Remove or pause a stage",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configureLogging()
 			return withStage(args[0], func(s stage.Stage) error {
 				if opts.remove {
 					return s.Remove(opts.force, opts.volumes)
@@ -78,7 +79,6 @@ func NewSSHCommand() *cobra.Command {
 		Short: "login to the stage",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configureLogging()
 			return withStage(args[0], func(s stage.Stage) error {
 				available, err := s.Available()
 				if err != nil {
@@ -104,4 +104,24 @@ func NewSSHCommand() *cobra.Command {
 			})
 		},
 	}
+}
+
+func withStage(name string, thing func(stage.Stage) error) error {
+	var conf *types.Stage
+	var err error
+
+	if len(name) > 0 {
+		conf, err = config.LoadStage(name)
+		if err != nil {
+			return err
+		}
+	}
+
+	s := &defaultchain.Stage{}
+	defer s.Cleanup()
+	if err := s.Initialize(name, conf); err != nil {
+		return errors.Wrap(err, "initialization failed")
+	}
+
+	return thing(s)
 }

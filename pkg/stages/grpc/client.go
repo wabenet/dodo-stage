@@ -3,9 +3,9 @@ package grpc
 import (
 	"encoding/json"
 
-	"github.com/oclaussen/dodo/pkg/stage"
+	"github.com/dodo/dodo-stage/pkg/stage"
+	"github.com/dodo/dodo-stage/proto"
 	"github.com/oclaussen/dodo/pkg/types"
-	"github.com/oclaussen/dodo/proto"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
