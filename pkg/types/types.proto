@@ -1,5 +1,45 @@
 syntax = "proto3";
-package proto;
+package com.github.dodo_cli.dodo_stage.types;
+
+option go_package = "github.com/dodo-cli/dodo-stage/pkg/types";
+
+message Backdrop {
+  string name = 1;
+  repeated string aliases = 2;
+
+  string stage = 3;
+  bool forward_stage = 4;
+}
+
+message Stage {
+  string type = 1;
+  Box box = 2;
+  Resources resources = 3;
+}
+
+message Box {
+  string user = 1;
+  string name = 2;
+  string version = 3;
+  string access_token = 4;
+}
+
+message Resources {
+  int64 cpu = 1;
+  int64 memory = 2;
+  repeated PersistentVolume volumes = 3;
+  repeated UsbFilter usb_filters = 4;
+}
+
+message PersistentVolume {
+  int64 size = 1;
+}
+
+message UsbFilter {
+  string name = 1;
+  string vendor_id = 2;
+  string product_id = 3;
+}
 
 message Empty {}
 
@@ -36,7 +76,7 @@ message DockerOptionsResponse {
   string key_file  = 5;
 }
 
-service Stage {
+service DockerStage {
   rpc Initialize(InitRequest) returns (Empty);
   rpc Create(Empty) returns (Empty);
   rpc Remove(RemoveRequest) returns (Empty);

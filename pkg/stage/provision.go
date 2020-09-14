@@ -1,4 +1,4 @@
-//go:generate env GOOS=linux GOARCH=amd64 go build -o assets/stage-designer github.com/dodo/dodo-stage/cmd/stage-designer
+//go:generate env GOOS=linux GOARCH=amd64 go build -o assets/stage-designer github.com/dodo-cli/dodo-stage/cmd/stage-designer
 //go:generate go run assets_generate.go
 
 package stage
@@ -6,7 +6,7 @@ package stage
 import (
 	"bytes"
 
-	"github.com/dodo/dodo-stage/pkg/stagedesigner"
+	"github.com/dodo-cli/dodo-stage/pkg/stagedesigner"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

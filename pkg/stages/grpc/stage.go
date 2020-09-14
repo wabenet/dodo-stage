@@ -7,12 +7,29 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/dodo/dodo-stage/pkg/stage"
+	dodo "github.com/dodo-cli/dodo-core/pkg/plugin"
+	"github.com/dodo-cli/dodo-stage/pkg/stage"
+	"github.com/dodo-cli/dodo-stage/pkg/types"
 	"github.com/hashicorp/go-plugin"
-	"github.com/oclaussen/dodo/pkg/types"
 	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
+
+type Plugin struct {
+	plugin.NetRPCUnsupportedPlugin
+	Impl stage.Stage
+}
+
+func (p *Plugin) GRPCServer(_ *plugin.GRPCBroker, server *grpc.Server) error {
+	types.RegisterDockerStageServer(server, &GRPCServer{Impl: p.Impl})
+	return nil
+}
+
+func (p *Plugin) GRPCClient(_ context.Context, _ *plugin.GRPCBroker, client *grpc.ClientConn) (interface{}, error) {
+	return &GRPCClient{client: types.NewDockerStageClient(client)}, nil
+}
 
 type Stage struct {
 	wrapped stage.Stage
@@ -26,11 +43,14 @@ func (s *Stage) Initialize(name string, conf *types.Stage) error {
 	}
 
 	s.client = plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig:  HandshakeConfig(conf.Type),
-		Plugins:          PluginMap,
+		HandshakeConfig: plugin.HandshakeConfig{
+			ProtocolVersion:  dodo.ProtocolVersion,
+			MagicCookieKey:   dodo.MagicCookieKey,
+			MagicCookieValue: dodo.MagicCookieValue,
+		},
+		Plugins:          map[string]plugin.Plugin{"stage": &Plugin{}},
 		Cmd:              exec.Command(path),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
-		Logger:           stage.NewPluginLogger(),
 	})
 
 	c, err := s.client.Client()

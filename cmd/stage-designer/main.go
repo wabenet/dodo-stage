@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/dodo/dodo-stage/pkg/stagedesigner"
+	"github.com/dodo-cli/dodo-stage/pkg/stagedesigner"
 	log "github.com/sirupsen/logrus"
 )
 

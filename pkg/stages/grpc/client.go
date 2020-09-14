@@ -3,15 +3,14 @@ package grpc
 import (
 	"encoding/json"
 
-	"github.com/dodo/dodo-stage/pkg/stage"
-	"github.com/dodo/dodo-stage/proto"
-	"github.com/oclaussen/dodo/pkg/types"
+	"github.com/dodo-cli/dodo-stage/pkg/stage"
+	"github.com/dodo-cli/dodo-stage/pkg/types"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
 type GRPCClient struct {
-	client proto.StageClient
+	client types.DockerStageClient
 }
 
 func (client *GRPCClient) Initialize(name string, config *types.Stage) error {
@@ -19,34 +18,34 @@ func (client *GRPCClient) Initialize(name string, config *types.Stage) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal json")
 	}
-	_, err = client.client.Initialize(context.Background(), &proto.InitRequest{Name: name, Config: string(jsonBytes)})
+	_, err = client.client.Initialize(context.Background(), &types.InitRequest{Name: name, Config: string(jsonBytes)})
 	return err
 }
 
 func (client *GRPCClient) Cleanup() {}
 
 func (client *GRPCClient) Create() error {
-	_, err := client.client.Create(context.Background(), &proto.Empty{})
+	_, err := client.client.Create(context.Background(), &types.Empty{})
 	return err
 }
 
 func (client *GRPCClient) Remove(force bool, volumes bool) error {
-	_, err := client.client.Remove(context.Background(), &proto.RemoveRequest{Force: force, Volumes: volumes})
+	_, err := client.client.Remove(context.Background(), &types.RemoveRequest{Force: force, Volumes: volumes})
 	return err
 }
 
 func (client *GRPCClient) Start() error {
-	_, err := client.client.Start(context.Background(), &proto.Empty{})
+	_, err := client.client.Start(context.Background(), &types.Empty{})
 	return err
 }
 
 func (client *GRPCClient) Stop() error {
-	_, err := client.client.Stop(context.Background(), &proto.Empty{})
+	_, err := client.client.Stop(context.Background(), &types.Empty{})
 	return err
 }
 
 func (client *GRPCClient) Exist() (bool, error) {
-	response, err := client.client.Exist(context.Background(), &proto.Empty{})
+	response, err := client.client.Exist(context.Background(), &types.Empty{})
 	if err != nil {
 		return false, err
 	}
@@ -54,7 +53,7 @@ func (client *GRPCClient) Exist() (bool, error) {
 }
 
 func (client *GRPCClient) Available() (bool, error) {
-	response, err := client.client.Available(context.Background(), &proto.Empty{})
+	response, err := client.client.Available(context.Background(), &types.Empty{})
 	if err != nil {
 		return false, err
 	}
@@ -62,7 +61,7 @@ func (client *GRPCClient) Available() (bool, error) {
 }
 
 func (client *GRPCClient) GetSSHOptions() (*stage.SSHOptions, error) {
-	response, err := client.client.GetSSHOptions(context.Background(), &proto.Empty{})
+	response, err := client.client.GetSSHOptions(context.Background(), &types.Empty{})
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +74,7 @@ func (client *GRPCClient) GetSSHOptions() (*stage.SSHOptions, error) {
 }
 
 func (client *GRPCClient) GetDockerOptions() (*stage.DockerOptions, error) {
-	response, err := client.client.GetDockerOptions(context.Background(), &proto.Empty{})
+	response, err := client.client.GetDockerOptions(context.Background(), &types.Empty{})
 	if err != nil {
 		return nil, err
 	}

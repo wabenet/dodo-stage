@@ -17,14 +17,14 @@ lint:
 	golangci-lint run --enable-all
 
 .PHONY: test
-test: proto/stage.pb.go
+test: pkg/types/types.pb.go
 	go generate ./...
 	go test -cover ./...
 
 .PHONY: build
-build: proto/stage.pb.go
+build: pkg/types/types.pb.go
 	go generate ./...
 	gox -arch="amd64" -os="darwin linux" ./...
 
 %.pb.go: %.proto
-	protoc --go_out=plugins=grpc:. $<
+	protoc --go_out=plugins=grpc:. --go_opt=module=github.com/dodo-cli/dodo-stage $<

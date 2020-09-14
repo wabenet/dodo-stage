@@ -1,10 +1,13 @@
 package command
 
 import (
-	"github.com/dodo/dodo-stage/pkg/stage"
-	"github.com/dodo/dodo-stage/pkg/stages/defaultchain"
-	"github.com/oclaussen/dodo/pkg/config"
-	"github.com/oclaussen/dodo/pkg/types"
+	"fmt"
+
+	"github.com/dodo-cli/dodo-core/pkg/decoder"
+	"github.com/dodo-cli/dodo-stage/pkg/stage"
+	"github.com/dodo-cli/dodo-stage/pkg/stages/grpc"
+	"github.com/dodo-cli/dodo-stage/pkg/types"
+	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -107,17 +110,26 @@ func NewSSHCommand() *cobra.Command {
 }
 
 func withStage(name string, thing func(stage.Stage) error) error {
-	var conf *types.Stage
-	var err error
+	stages := map[string]*types.Stage{}
+	configfiles.GimmeConfigFiles(&configfiles.Options{
+		Name:                      "dodo",
+		Extensions:                []string{"yaml", "yml", "json"},
+		IncludeWorkingDirectories: true,
+		Filter: func(configFile *configfiles.ConfigFile) bool {
+			d := decoder.New(configFile.Path)
+			d.DecodeYaml(configFile.Content, &stages, map[string]decoder.Decoding{
+				"stages": decoder.Map(types.NewStage(), &stages),
+			})
+			return false
+		},
+	})
 
-	if len(name) > 0 {
-		conf, err = config.LoadStage(name)
-		if err != nil {
-			return err
-		}
+	conf, ok := stages[name]
+	if !ok {
+		return fmt.Errorf("could not find any configuration for stage '%s'", name)
 	}
 
-	s := &defaultchain.Stage{}
+	s := &grpc.Stage{}
 	defer s.Cleanup()
 	if err := s.Initialize(name, conf); err != nil {
 		return errors.Wrap(err, "initialization failed")

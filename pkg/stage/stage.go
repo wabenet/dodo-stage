@@ -1,7 +1,7 @@
 package stage
 
 import (
-	"github.com/oclaussen/dodo/pkg/types"
+	"github.com/dodo-cli/dodo-stage/pkg/types"
 )
 
 type Stage interface {
