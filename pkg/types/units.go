@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/alecthomas/units"
 	"github.com/dodo-cli/dodo-core/pkg/decoder"
 )
 
@@ -27,7 +28,13 @@ func Bytes(target interface{}) decoder.Decoding {
 				return
 			}
 
-			reflect.ValueOf(target).Elem().SetString(templated)
+                        result, err := units.ParseStrictBytes(templated)
+			if err != nil {
+				d.Error(err)
+				return
+			}
+
+			reflect.ValueOf(target).Elem().SetInt(result)
 		},
 	})
 }

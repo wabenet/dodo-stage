@@ -20,7 +20,7 @@ func DecodeBackdrop(target interface{}) decoder.Decoding {
 		reflect.Map: decoder.Keys(map[string]decoder.Decoding{
 			"alias":   decoder.Slice(decoder.NewString(), &backdrop.Aliases),
 			"aliases": decoder.Slice(decoder.NewString(), &backdrop.Aliases),
-			"stage":   DecodeStage(&backdrop.Stage),
+			"stage":   decoder.String(&backdrop.Stage),
 		}),
 	})
 }

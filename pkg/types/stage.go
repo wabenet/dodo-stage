@@ -8,7 +8,13 @@ import (
 
 func NewStage() decoder.Producer {
 	return func() (interface{}, decoder.Decoding) {
-		target := &Stage{}
+		target := &Stage{
+			Box: &Box{},
+			Resources: &Resources{
+				Volumes:    []*PersistentVolume{},
+				UsbFilters: []*UsbFilter{},
+			},
+		}
 		return &target, DecodeStage(&target)
 	}
 }
@@ -20,7 +26,7 @@ func DecodeStage(target interface{}) decoder.Decoding {
 		reflect.Map: decoder.Keys(map[string]decoder.Decoding{
 			"type":      decoder.String(&stage.Type),
 			"box":       DecodeBox(&stage.Box),
-			"Resources": DecodeResources(&stage.Resources),
+			"resources": DecodeResources(&stage.Resources),
 		}),
 	})
 }
