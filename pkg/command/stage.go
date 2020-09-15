@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	"github.com/dodo-cli/dodo-core/pkg/decoder"
+	"github.com/dodo-cli/dodo-core/pkg/plugin"
 	"github.com/dodo-cli/dodo-stage/pkg/stage"
-	"github.com/dodo-cli/dodo-stage/pkg/stages/grpc"
 	"github.com/dodo-cli/dodo-stage/pkg/types"
+	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
@@ -129,11 +130,15 @@ func withStage(name string, thing func(stage.Stage) error) error {
 		return fmt.Errorf("could not find any configuration for stage '%s'", name)
 	}
 
-	s := &grpc.Stage{}
-	defer s.Cleanup()
-	if err := s.Initialize(name, conf); err != nil {
-		return errors.Wrap(err, "initialization failed")
+	for _, p := range plugin.GetPlugins(stage.Type.String()) {
+		s := p.(stage.Stage)
+		if err := s.Initialize(name, conf); err != nil {
+			log.Default().Error("initialization failed", "error", err)
+			continue
+		}
+		defer s.Cleanup()
+		return thing(s)
 	}
 
-	return thing(s)
+	return fmt.Errorf("could not find any stage plugin for type '%s'", conf.Type)
 }
