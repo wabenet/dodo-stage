@@ -6,6 +6,7 @@ import (
 	"github.com/dodo-cli/dodo-core/pkg/appconfig"
 	dodo "github.com/dodo-cli/dodo-core/pkg/plugin"
 	"github.com/dodo-cli/dodo-stage/pkg/command"
+	"github.com/dodo-cli/dodo-stage/pkg/stage"
 	log "github.com/hashicorp/go-hclog"
 )
 
@@ -27,5 +28,6 @@ func RunMe() int {
 }
 
 func IncludeMe() {
+	dodo.RegisterPluginTypes(stage.Type)
 	dodo.IncludePlugins(&command.Command{})
 }

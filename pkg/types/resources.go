@@ -4,10 +4,11 @@ import (
 	"reflect"
 
 	"github.com/dodo-cli/dodo-core/pkg/decoder"
+	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 )
 
 func DecodeResources(target interface{}) decoder.Decoding {
-	res := *(target.(**Resources))
+	res := *(target.(**api.Resources))
 
 	return decoder.Kinds(map[reflect.Kind]decoder.Decoding{
 		reflect.Map: decoder.Keys(map[string]decoder.Decoding{

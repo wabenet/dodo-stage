@@ -6,13 +6,14 @@ package stage
 import (
 	"bytes"
 
+	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/dodo-cli/dodo-stage/pkg/stagedesigner"
+	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
-func Provision(sshOpts *SSHOptions, config *stagedesigner.Config) (*stagedesigner.ProvisionResult, error) {
+func Provision(sshOpts *api.SSHOptions, config *stagedesigner.Config) (*stagedesigner.ProvisionResult, error) {
 	file, err := Assets.Open("/stage-designer")
 	if err != nil {
 		return nil, err
@@ -26,7 +27,7 @@ func Provision(sshOpts *SSHOptions, config *stagedesigner.Config) (*stagedesigne
 
 	executor, err := ssh.GimmeExecutor(&ssh.Options{
 		Host:              sshOpts.Hostname,
-		Port:              sshOpts.Port,
+		Port:              int(sshOpts.Port),
 		User:              sshOpts.Username,
 		IdentityFileGlobs: []string{sshOpts.PrivateKeyFile},
 		NonInteractive:    true,
@@ -36,7 +37,7 @@ func Provision(sshOpts *SSHOptions, config *stagedesigner.Config) (*stagedesigne
 	}
 	defer executor.Close()
 
-	log.Debug("write stage designer to stage")
+	log.L().Debug("write stage designer to stage")
 	if err := executor.WriteFile(&ssh.FileOptions{
 		Path:   "/tmp/stage-designer",
 		Reader: file,
@@ -62,7 +63,7 @@ func Provision(sshOpts *SSHOptions, config *stagedesigner.Config) (*stagedesigne
 	}
 
 	// TODO: figure out whether we have/need sudo
-	log.Debug("executing stage designer")
+	log.L().Debug("executing stage designer")
 	out, err := executor.Execute("sudo /tmp/stage-designer /tmp/stage-designer-config")
 	if err != nil {
 		return nil, errors.Wrap(err, out)

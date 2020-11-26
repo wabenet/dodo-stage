@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 
 	"github.com/dodo-cli/dodo-core/pkg/appconfig"
+	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/dodo-cli/dodo-stage/pkg/integrations/vagrantcloud"
-	"github.com/dodo-cli/dodo-stage/pkg/types"
 	"github.com/pkg/errors"
 )
 
 type Box struct {
-	config      *types.Box
+	config      *api.Box
 	storagePath string
 	tmpPath     string
 	metadata    *vagrantcloud.Box
@@ -19,7 +19,7 @@ type Box struct {
 	provider    *vagrantcloud.Provider
 }
 
-func Load(conf *types.Box, provider string) (*Box, error) {
+func Load(conf *api.Box, provider string) (*Box, error) {
 	box := &Box{config: conf}
 	api := vagrantcloud.New(conf.AccessToken)
 	metadata, err := api.GetBox(&vagrantcloud.BoxOptions{Username: conf.User, Name: conf.Name})

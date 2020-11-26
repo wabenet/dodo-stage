@@ -5,9 +5,9 @@ import (
 
 	"github.com/dodo-cli/dodo-core/pkg/decoder"
 	"github.com/dodo-cli/dodo-core/pkg/plugin"
+	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/dodo-cli/dodo-stage/pkg/stage"
 	"github.com/dodo-cli/dodo-stage/pkg/types"
-	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
@@ -22,10 +22,50 @@ func NewStageCommand() *cobra.Command {
 		SilenceUsage:     true,
 	}
 
+	cmd.AddCommand(NewListCommand())
 	cmd.AddCommand(NewUpCommand())
 	cmd.AddCommand(NewDownCommand())
 	cmd.AddCommand(NewSSHCommand())
 	return cmd
+}
+
+func NewListCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "List stages",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			stages := map[string]*api.Stage{}
+			configfiles.GimmeConfigFiles(&configfiles.Options{
+				Name:                      "dodo",
+				Extensions:                []string{"yaml", "yml", "json"},
+				IncludeWorkingDirectories: true,
+				Filter: func(configFile *configfiles.ConfigFile) bool {
+					d := decoder.New(configFile.Path)
+					d.DecodeYaml(configFile.Content, &stages, map[string]decoder.Decoding{
+						"stages": decoder.Map(types.NewStage(), &stages),
+					})
+					return false
+				},
+			})
+
+			for name, conf := range stages {
+				s, err := loadPlugin(conf.Type)
+				if err != nil {
+					return err
+				}
+
+				current, err := s.GetStage(name)
+				if err != nil {
+					return err
+				}
+
+                                fmt.Printf("%s (%v)", name, current.Available)
+			}
+
+                        return nil
+		},
+	}
 }
 
 func NewUpCommand() *cobra.Command {
@@ -34,17 +74,25 @@ func NewUpCommand() *cobra.Command {
 		Short: "Create or start a stage",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return withStage(args[0], func(s stage.Stage) error {
-				exist, err := s.Exist()
-				if err != nil {
-					return err
-				}
+			conf, err := loadStageConfig(args[0])
+			if err != nil {
+				return err
+			}
 
-				if !exist {
-					return s.Create()
-				}
-				return s.Start()
-			})
+			s, err := loadPlugin(conf.Type)
+			if err != nil {
+				return err
+			}
+
+			current, err := s.GetStage(args[0])
+			if err != nil {
+				return err
+			}
+
+			if !current.Exist {
+				return s.CreateStage(conf)
+			}
+			return s.StartStage(args[0])
 		},
 	}
 }
@@ -62,12 +110,21 @@ func NewDownCommand() *cobra.Command {
 		Short: "Remove or pause a stage",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return withStage(args[0], func(s stage.Stage) error {
-				if opts.remove {
-					return s.Remove(opts.force, opts.volumes)
-				}
-				return s.Stop()
-			})
+			conf, err := loadStageConfig(args[0])
+			if err != nil {
+				return err
+			}
+
+			s, err := loadPlugin(conf.Type)
+			if err != nil {
+				return err
+			}
+
+			if opts.remove {
+				return s.DeleteStage(args[0], opts.force, opts.volumes)
+			}
+
+			return s.StopStage(args[0])
 		},
 	}
 	flags := cmd.Flags()
@@ -83,35 +140,38 @@ func NewSSHCommand() *cobra.Command {
 		Short: "login to the stage",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return withStage(args[0], func(s stage.Stage) error {
-				available, err := s.Available()
-				if err != nil {
-					return err
-				}
+			conf, err := loadStageConfig(args[0])
+			if err != nil {
+				return err
+			}
 
-				if !available {
-					return errors.New("stage is not up")
-				}
+			s, err := loadPlugin(conf.Type)
+			if err != nil {
+				return err
+			}
 
-				opts, err := s.GetSSHOptions()
-				if err != nil {
-					return err
-				}
+			current, err := s.GetStage(args[0])
+			if err != nil {
+				return err
+			}
 
-				return ssh.GimmeShell(&ssh.Options{
-					Host:              opts.Hostname,
-					Port:              opts.Port,
-					User:              opts.Username,
-					IdentityFileGlobs: []string{opts.PrivateKeyFile},
-					NonInteractive:    true,
-				})
+			if !current.Available {
+				return errors.New("stage is not up")
+			}
+
+			return ssh.GimmeShell(&ssh.Options{
+				Host:              current.SshOptions.Hostname,
+				Port:              int(current.SshOptions.Port),
+				User:              current.SshOptions.Username,
+				IdentityFileGlobs: []string{current.SshOptions.PrivateKeyFile},
+				NonInteractive:    true,
 			})
 		},
 	}
 }
 
-func withStage(name string, thing func(stage.Stage) error) error {
-	stages := map[string]*types.Stage{}
+func loadStageConfig(name string) (*api.Stage, error) {
+	stages := map[string]*api.Stage{}
 	configfiles.GimmeConfigFiles(&configfiles.Options{
 		Name:                      "dodo",
 		Extensions:                []string{"yaml", "yml", "json"},
@@ -125,20 +185,21 @@ func withStage(name string, thing func(stage.Stage) error) error {
 		},
 	})
 
-	conf, ok := stages[name]
-	if !ok {
-		return fmt.Errorf("could not find any configuration for stage '%s'", name)
+	if conf, ok := stages[name]; ok {
+		conf.Name = name // TODO: figure out where to set defaults like this
+		return conf, nil
 	}
 
+	return nil, fmt.Errorf("could not find any configuration for stage '%s'", name)
+}
+
+func loadPlugin(name string) (stage.Stage, error) {
 	for _, p := range plugin.GetPlugins(stage.Type.String()) {
 		s := p.(stage.Stage)
-		if err := s.Initialize(name, conf); err != nil {
-			log.Default().Error("initialization failed", "error", err)
-			continue
+		if info, err := s.PluginInfo(); err == nil && info.Name == name {
+			return s, nil
 		}
-		defer s.Cleanup()
-		return thing(s)
 	}
 
-	return fmt.Errorf("could not find any stage plugin for type '%s'", conf.Type)
+	return nil, fmt.Errorf("could not find any stage plugin for type '%s'", name)
 }

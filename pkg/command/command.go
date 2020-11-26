@@ -1,12 +1,15 @@
 package command
 
 import (
+	api "github.com/dodo-cli/dodo-core/api/v1alpha1"
 	"github.com/dodo-cli/dodo-core/pkg/plugin"
 	"github.com/dodo-cli/dodo-core/pkg/plugin/command"
 	"github.com/spf13/cobra"
 )
 
 const name = "stage"
+
+var _ command.Command = &Command{}
 
 type Command struct {
 	cmd *cobra.Command
@@ -21,8 +24,8 @@ func (p *Command) Init() error {
 	return nil
 }
 
-func (p *Command) Name() string {
-	return name
+func (p *Command) PluginInfo() (*api.PluginInfo, error) {
+	return &api.PluginInfo{Name: name}, nil
 }
 
 func (p *Command) GetCobraCommand() *cobra.Command {

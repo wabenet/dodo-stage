@@ -17,12 +17,12 @@ lint:
 	golangci-lint run --enable-all
 
 .PHONY: test
-test: pkg/types/types.pb.go
+test: api/v1alpha1/stage_plugin.pb.go api/v1alpha1/stage.pb.go
 	go generate ./...
 	go test -cover ./...
 
 .PHONY: build
-build: pkg/types/types.pb.go
+build: api/v1alpha1/stage_plugin.pb.go api/v1alpha1/stage.pb.go
 	go generate ./...
 	gox -arch="amd64" -os="darwin linux" ./...
 

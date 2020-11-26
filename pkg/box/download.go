@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"github.com/cavaliercoder/grab"
+	log "github.com/hashicorp/go-hclog"
 	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 // TODO: automatically check for updates and download if necessary
 
 func (box *Box) Download() error {
 	if _, err := os.Stat(filepath.Join(box.Path(), "metadata.json")); err == nil {
-		log.Info("box already exist")
+		log.L().Info("box already exist")
 		return nil
 	}
 
@@ -34,14 +34,14 @@ func (box *Box) Download() error {
 		return err
 	}
 
-	log.Info("downloading box...")
+	log.L().Info("downloading box...")
 	resp := client.Do(req)
 	tick(resp)
 	if err := resp.Err(); err != nil {
 		return err
 	}
 
-	log.Info("extracting box...")
+	log.L().Info("extracting box...")
 	if err := unarchive(filepath.Join(box.tmpPath, filename), box.Path()); err != nil {
 		return err
 	}

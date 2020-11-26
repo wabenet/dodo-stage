@@ -3,12 +3,11 @@ package stagedesigner
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"text/template"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -73,7 +72,7 @@ func InstallDocker() error {
 			}
 		}
 	}
-	log.Warn("no valid docker installation method found, assuming it is already installed")
+	log.Printf("no valid docker installation method found, assuming it is already installed")
 	return nil
 }
 
@@ -92,7 +91,7 @@ func RestartDocker() error {
 	} else if service, err := exec.LookPath("service"); err == nil {
 		return exec.Command(service, "docker", "restart").Run()
 	}
-	log.Warn("could not start docker daemon")
+	log.Printf("could not start docker daemon")
 	return nil
 }
 
@@ -100,7 +99,7 @@ func AddDockerUser(user string) error {
 	if usermod, err := exec.LookPath("usermod"); err == nil {
 		return exec.Command(usermod, "-a", "-G", "docker", user).Run()
 	}
-	log.Warn("could not modify user")
+	log.Printf("could not modify user")
 	return nil
 }
 

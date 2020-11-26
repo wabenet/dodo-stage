@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package com.github.dodo_cli.dodo_stage.api.v1alpha1;
+
+option go_package = "github.com/dodo-cli/dodo-stage/api/v1alpha1";
+
+import "google/protobuf/empty.proto";
+import "api/v1alpha1/stage_plugin.proto";
+
+service StagePlugin {
+  rpc Init(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc GetPluginInfo(google.protobuf.Empty) returns (com.github.dodo_cli.dodo_stage.api.v1alpha1.PluginInfo);
+
+  rpc ListStages(google.protobuf.Empty) returns (ListStagesResponse);
+  rpc GetStage(GetStageRequest) returns (GetStageResponse);
+  rpc CreateStage(CreateStageRequest) returns (google.protobuf.Empty);
+  rpc DeleteStage(DeleteStageRequest) returns (google.protobuf.Empty);
+  rpc StartStage(StartStageRequest) returns (google.protobuf.Empty);
+  rpc StopStage(StopStageRequest) returns (google.protobuf.Empty);
+}
+
+message Stage {
+  string name = 1;
+  string type = 2;
+  Box box = 3;
+  Resources resources = 4;
+}
+
+message Box {
+  string user = 1;
+  string name = 2;
+  string version = 3;
+  string access_token = 4;
+}
+
+message Resources {
+  int64 cpu = 1;
+  int64 memory = 2;
+  repeated PersistentVolume volumes = 3;
+  repeated UsbFilter usb_filters = 4;
+}
+
+message PersistentVolume {
+  int64 size = 1;
+}
+
+message UsbFilter {
+  string name = 1;
+  string vendor_id = 2;
+  string product_id = 3;
+}
+
+message SSHOptions {
+  string hostname         = 1;
+  int32  port             = 2;
+  string username         = 3;
+  string private_key_file = 4;
+}
+
+message ListStagesResponse {
+  repeated Stage stages = 1;
+}
+
+message GetStageRequest {
+  string name = 1;
+}
+
+message GetStageResponse {
+  string name = 1;
+  bool exist = 2;
+  bool available = 3;
+  SSHOptions ssh_options = 4;
+}
+
+message CreateStageRequest {
+  Stage config = 1;
+}
+
+message DeleteStageRequest {
+  string name = 1;
+  bool force = 2;
+  bool volumes = 3;
+}
+
+message StartStageRequest{
+  string name = 1;
+}
+
+message StopStageRequest {
+  string name = 1;
+}

@@ -2,7 +2,8 @@ package stage
 
 import (
 	dodo "github.com/dodo-cli/dodo-core/pkg/plugin"
-	"github.com/dodo-cli/dodo-stage/pkg/types"
+	"github.com/dodo-cli/dodo-core/pkg/plugin/runtime"
+	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/hashicorp/go-plugin"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -28,44 +29,28 @@ func (t pluginType) GRPCServer(p dodo.Plugin) (plugin.Plugin, error) {
 	return &grpcPlugin{Impl: config}, nil
 }
 
-type Stage interface {
-	Initialize(string, *types.Stage) error
-	Cleanup()
-	Create() error
-	Start() error
-	Stop() error
-	Remove(bool, bool) error
-	Exist() (bool, error)
-	Available() (bool, error)
-	GetSSHOptions() (*SSHOptions, error)
-	GetDockerOptions() (*DockerOptions, error)
-}
-
-type SSHOptions struct {
-	Hostname       string
-	Port           int
-	Username       string
-	PrivateKeyFile string
-}
-
-type DockerOptions struct {
-	Version  string
-	Host     string
-	CAFile   string
-	CertFile string
-	KeyFile  string
-}
-
 type grpcPlugin struct {
 	plugin.NetRPCUnsupportedPlugin
 	Impl Stage
 }
 
 func (p *grpcPlugin) GRPCClient(_ context.Context, _ *plugin.GRPCBroker, conn *grpc.ClientConn) (interface{}, error) {
-	return &client{stageClient: types.NewDockerStageClient(conn)}, nil
+	return &client{stageClient: api.NewStagePluginClient(conn)}, nil
 }
 
 func (p *grpcPlugin) GRPCServer(_ *plugin.GRPCBroker, s *grpc.Server) error {
-	types.RegisterDockerStageServer(s, &server{impl: p.Impl})
+	api.RegisterStagePluginServer(s, &server{impl: p.Impl})
 	return nil
+}
+
+type Stage interface {
+	dodo.Plugin
+
+	ListStages() ([]*api.Stage, error)
+	GetStage(string) (*api.GetStageResponse, error)
+	CreateStage(*api.Stage) error
+	DeleteStage(string, bool, bool) error
+	StartStage(string) error
+	StopStage(string) error
+        GetContainerRuntime(string) (runtime.ContainerRuntime, error)
 }

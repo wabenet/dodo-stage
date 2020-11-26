@@ -4,15 +4,16 @@ import (
 	"reflect"
 
 	"github.com/dodo-cli/dodo-core/pkg/decoder"
+	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 )
 
 func NewStage() decoder.Producer {
 	return func() (interface{}, decoder.Decoding) {
-		target := &Stage{
-			Box: &Box{},
-			Resources: &Resources{
-				Volumes:    []*PersistentVolume{},
-				UsbFilters: []*UsbFilter{},
+		target := &api.Stage{
+			Box: &api.Box{},
+			Resources: &api.Resources{
+				Volumes:    []*api.PersistentVolume{},
+				UsbFilters: []*api.UsbFilter{},
 			},
 		}
 		return &target, DecodeStage(&target)
@@ -20,7 +21,7 @@ func NewStage() decoder.Producer {
 }
 
 func DecodeStage(target interface{}) decoder.Decoding {
-	stage := *(target.(**Stage))
+	stage := *(target.(**api.Stage))
 
 	return decoder.Kinds(map[reflect.Kind]decoder.Decoding{
 		reflect.Map: decoder.Keys(map[string]decoder.Decoding{

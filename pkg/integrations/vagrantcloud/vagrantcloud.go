@@ -2,6 +2,7 @@ package vagrantcloud
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -94,7 +95,7 @@ func (v *VagrantCloud) request(method string, path string, contentType string, d
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New(string(resp.StatusCode))
+		return nil, errors.New(fmt.Sprint(resp.StatusCode))
 	}
 	return body, nil
 }

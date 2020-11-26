@@ -3,6 +3,7 @@ package stagedesigner
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -11,8 +12,6 @@ import (
 	"path/filepath"
 	"text/template"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -74,11 +73,11 @@ func configureNetworkManager(network Network) error {
 
 	if systemctl, err := exec.LookPath("systemctl"); err == nil {
 		if err := exec.Command(systemctl, "restart", "NetworkManager").Run(); err != nil {
-			return errors.Wrap(err, "could not restart NetworkManager")
+			return fmt.Errorf("could not restart NetworkManager: %q", err)
 		}
 	} else {
 		if err := exec.Command("/etc/init.d/NetworkManager", "restart").Run(); err != nil {
-			return errors.Wrap(err, "could not restart NetworkManager")
+			return fmt.Errorf("could not restart NetworkManager: %q", err)
 		}
 	}
 	return nil
@@ -116,7 +115,7 @@ func readSurroundingLines(path string, beginMarker string, endMarker string) ([]
 
 	file, err := os.Open(path)
 	if err != nil {
-		return preLines, postLines, errors.Wrap(err, "could not open file")
+		return preLines, postLines, fmt.Errorf("could not open file: %q", err)
 	}
 	defer file.Close()
 
@@ -150,7 +149,7 @@ func replaceBlockInFile(path string, beginMarker string, endMarker string, conte
 
 	file, err := os.Create(path)
 	if err != nil {
-		return errors.Wrap(err, "could not open file")
+		return fmt.Errorf("could not open file: %q", err)
 	}
 	defer file.Close()
 

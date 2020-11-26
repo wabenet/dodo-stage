@@ -1,41 +1,41 @@
 package stagedesigner
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net"
 	"os/exec"
 	"time"
 
 	"github.com/oclaussen/go-gimme/ssl"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 func Provision(config *Config) (*ProvisionResult, error) {
-	log.Info("replace insecure SSH key")
+	log.Printf("replace insecure SSH key")
 	if err := ConfigureSSHKeys(config); err != nil {
 		return nil, err
 	}
 
-	log.Info("configure host network...")
+	log.Printf("configure host network...")
 	ip, err := ConfigureNetwork(Network{Device: "eth1"})
 	if err != nil {
 		return nil, err
 	}
 
-	log.Info("set hostname...")
+	log.Printf("set hostname...")
 	if err := ConfigureHostname(config.Hostname); err != nil {
 		return nil, err
 	}
 
-	log.Info("running provision script...")
+	log.Printf("running provision script...")
 	for _, script := range config.Script {
 		if _, err := exec.Command("/bin/sh", "-c", script).CombinedOutput(); err != nil {
 			return nil, err
 		}
 	}
 
-	log.Info("installing docker...")
+	log.Printf("installing docker...")
 	if err := InstallDocker(); err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func Provision(config *Config) (*ProvisionResult, error) {
 		return nil, err
 	}
 
-	log.Info("configuring docker...")
+	log.Printf("configuring docker...")
 	if err := ConfigureDocker(&DockerConfig{
 		CA:          certs.CA,
 		ServerCert:  certs.ServerCert,
@@ -63,7 +63,7 @@ func Provision(config *Config) (*ProvisionResult, error) {
 		return nil, err
 	}
 
-	log.Info("starting docker...")
+	log.Printf("starting docker...")
 	if err := RestartDocker(); err != nil {
 		return nil, err
 	}
