@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/dodo-cli/dodo-core/pkg/appconfig"
+	"github.com/dodo-cli/dodo-core/pkg/config"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/dodo-cli/dodo-stage/pkg/integrations/vagrantcloud"
 	"github.com/pkg/errors"
@@ -27,8 +27,8 @@ func Load(conf *api.Box, provider string) (*Box, error) {
 		return nil, errors.Wrap(err, "could not get box metadata")
 	}
 	box.metadata = metadata
-	box.storagePath = filepath.Join(appconfig.GetAppDir(), "boxes")
-	box.tmpPath = filepath.Join(appconfig.GetAppDir(), "tmp")
+	box.storagePath = filepath.Join(config.GetAppDir(), "boxes")
+	box.tmpPath = filepath.Join(config.GetAppDir(), "tmp")
 
 	v, err := findVersion(conf.Version, metadata)
 	if err != nil {

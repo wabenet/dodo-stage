@@ -8,10 +8,9 @@ import "google/protobuf/empty.proto";
 import "api/v1alpha1/stage_plugin.proto";
 
 service StagePlugin {
-  rpc Init(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc GetPluginInfo(google.protobuf.Empty) returns (com.github.dodo_cli.dodo_stage.api.v1alpha1.PluginInfo);
+  rpc InitPlugin(google.protobuf.Empty) returns (com.github.dodo_cli.dodo_stage.api.v1alpha1.InitPluginResponse);
 
-  rpc ListStages(google.protobuf.Empty) returns (ListStagesResponse);
   rpc GetStage(GetStageRequest) returns (GetStageResponse);
   rpc CreateStage(CreateStageRequest) returns (google.protobuf.Empty);
   rpc DeleteStage(DeleteStageRequest) returns (google.protobuf.Empty);
@@ -55,10 +54,6 @@ message SSHOptions {
   int32  port             = 2;
   string username         = 3;
   string private_key_file = 4;
-}
-
-message ListStagesResponse {
-  repeated Stage stages = 1;
 }
 
 message GetStageRequest {

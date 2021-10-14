@@ -6,7 +6,7 @@ import (
 	"github.com/dodo-cli/dodo-core/pkg/decoder"
 	"github.com/dodo-cli/dodo-core/pkg/plugin"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
-	"github.com/dodo-cli/dodo-stage/pkg/stage"
+	"github.com/dodo-cli/dodo-stage/pkg/plugin/stage"
 	"github.com/dodo-cli/dodo-stage/pkg/types"
 	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/oclaussen/go-gimme/ssh"
@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewStageCommand() *cobra.Command {
+func New(m plugin.Manager) *Command {
 	cmd := &cobra.Command{
 		Use:              "stage",
 		Short:            "Manage stages",
@@ -22,14 +22,15 @@ func NewStageCommand() *cobra.Command {
 		SilenceUsage:     true,
 	}
 
-	cmd.AddCommand(NewListCommand())
-	cmd.AddCommand(NewUpCommand())
-	cmd.AddCommand(NewDownCommand())
-	cmd.AddCommand(NewSSHCommand())
-	return cmd
+	cmd.AddCommand(NewListCommand(m))
+	cmd.AddCommand(NewUpCommand(m))
+	cmd.AddCommand(NewDownCommand(m))
+	cmd.AddCommand(NewSSHCommand(m))
+
+	return &Command{cmd: cmd}
 }
 
-func NewListCommand() *cobra.Command {
+func NewListCommand(m plugin.Manager) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List stages",
@@ -45,12 +46,13 @@ func NewListCommand() *cobra.Command {
 					d.DecodeYaml(configFile.Content, &stages, map[string]decoder.Decoding{
 						"stages": decoder.Map(types.NewStage(), &stages),
 					})
+
 					return false
 				},
 			})
 
 			for name, conf := range stages {
-				s, err := loadPlugin(conf.Type)
+				s, err := loadPlugin(m, conf.Type)
 				if err != nil {
 					return err
 				}
@@ -60,15 +62,15 @@ func NewListCommand() *cobra.Command {
 					return err
 				}
 
-                                fmt.Printf("%s (%v)", name, current.Available)
+				fmt.Printf("%s (%v)", name, current.Available)
 			}
 
-                        return nil
+			return nil
 		},
 	}
 }
 
-func NewUpCommand() *cobra.Command {
+func NewUpCommand(m plugin.Manager) *cobra.Command {
 	return &cobra.Command{
 		Use:   "up",
 		Short: "Create or start a stage",
@@ -79,7 +81,7 @@ func NewUpCommand() *cobra.Command {
 				return err
 			}
 
-			s, err := loadPlugin(conf.Type)
+			s, err := loadPlugin(m, conf.Type)
 			if err != nil {
 				return err
 			}
@@ -92,6 +94,7 @@ func NewUpCommand() *cobra.Command {
 			if !current.Exist {
 				return s.CreateStage(conf)
 			}
+
 			return s.StartStage(args[0])
 		},
 	}
@@ -103,7 +106,7 @@ type downOptions struct {
 	force   bool
 }
 
-func NewDownCommand() *cobra.Command {
+func NewDownCommand(m plugin.Manager) *cobra.Command {
 	var opts downOptions
 	cmd := &cobra.Command{
 		Use:   "down",
@@ -115,7 +118,7 @@ func NewDownCommand() *cobra.Command {
 				return err
 			}
 
-			s, err := loadPlugin(conf.Type)
+			s, err := loadPlugin(m, conf.Type)
 			if err != nil {
 				return err
 			}
@@ -131,10 +134,11 @@ func NewDownCommand() *cobra.Command {
 	flags.BoolVarP(&opts.remove, "rm", "", false, "remove the stage instead of pausing")
 	flags.BoolVarP(&opts.volumes, "volumes", "", false, "when used with '--rm', also delete persistent volumes")
 	flags.BoolVarP(&opts.force, "force", "f", false, "when used with '--rm', don't stop on errors")
+
 	return cmd
 }
 
-func NewSSHCommand() *cobra.Command {
+func NewSSHCommand(m plugin.Manager) *cobra.Command {
 	return &cobra.Command{
 		Use:   "ssh",
 		Short: "login to the stage",
@@ -145,7 +149,7 @@ func NewSSHCommand() *cobra.Command {
 				return err
 			}
 
-			s, err := loadPlugin(conf.Type)
+			s, err := loadPlugin(m, conf.Type)
 			if err != nil {
 				return err
 			}
@@ -181,22 +185,24 @@ func loadStageConfig(name string) (*api.Stage, error) {
 			d.DecodeYaml(configFile.Content, &stages, map[string]decoder.Decoding{
 				"stages": decoder.Map(types.NewStage(), &stages),
 			})
+
 			return false
 		},
 	})
 
 	if conf, ok := stages[name]; ok {
 		conf.Name = name // TODO: figure out where to set defaults like this
+
 		return conf, nil
 	}
 
 	return nil, fmt.Errorf("could not find any configuration for stage '%s'", name)
 }
 
-func loadPlugin(name string) (stage.Stage, error) {
-	for _, p := range plugin.GetPlugins(stage.Type.String()) {
+func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {
+	for _, p := range m.GetPlugins(stage.Type.String()) {
 		s := p.(stage.Stage)
-		if info, err := s.PluginInfo(); err == nil && info.Name == name {
+		if info := s.PluginInfo(); info.Name.Name == name {
 			return s, nil
 		}
 	}
