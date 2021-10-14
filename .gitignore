@@ -1,3 +1,2 @@
 /.cache/
-dodo-stage_*
-stage-designer_*
+/dist/
