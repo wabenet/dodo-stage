@@ -94,10 +94,10 @@ func (c *ContainerRuntime) ResizeContainer(id string, height uint32, width uint3
 	return r.ResizeContainer(id, height, width)
 }
 
-func (c *ContainerRuntime) StreamContainer(id string, stream *plugin.StreamConfig) error {
+func (c *ContainerRuntime) StreamContainer(id string, stream *plugin.StreamConfig) (*runtime.Result, error) {
 	r, err := c.get()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return r.StreamContainer(id, stream)

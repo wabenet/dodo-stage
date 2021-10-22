@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4
 	github.com/cavaliercoder/grab v2.0.0+incompatible
-	github.com/dodo-cli/dodo-core v0.1.1-0.20211014161525-79a2aac5b203
+	github.com/dodo-cli/dodo-core v0.1.1-0.20211021161658-f146cd6923e9
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/frankban/quicktest v1.11.3 // indirect
 	github.com/golang/protobuf v1.4.1

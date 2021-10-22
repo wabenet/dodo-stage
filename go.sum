@@ -53,8 +53,8 @@ github.com/deckarep/golang-set v1.7.1 h1:SCQV0S6gTtp6itiFrTqI+pfmJ4LN85S1YzhDf9r
 github.com/deckarep/golang-set v1.7.1/go.mod h1:93vsz/8Wt4joVM7c2AVqh+YRMiUSc14yDtF28KmMOgQ=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
-github.com/dodo-cli/dodo-core v0.1.1-0.20211014161525-79a2aac5b203 h1:O3wKQHn+aqNtKlYlbsghZlHatbYtdR1FjigXpjtR7ho=
-github.com/dodo-cli/dodo-core v0.1.1-0.20211014161525-79a2aac5b203/go.mod h1:oJwQ515hoxo6H+m7RcVVeWo/qc/b7ilGesNdo8fLoDw=
+github.com/dodo-cli/dodo-core v0.1.1-0.20211021161658-f146cd6923e9 h1:xQTpbnSyQGjj+tJFIkHrqNT6XGDX3HY/a4inBet7WBk=
+github.com/dodo-cli/dodo-core v0.1.1-0.20211021161658-f146cd6923e9/go.mod h1:oJwQ515hoxo6H+m7RcVVeWo/qc/b7ilGesNdo8fLoDw=
 github.com/dsnet/compress v0.0.1 h1:PlZu0n3Tuv04TzpfPbrnI0HW/YwodEXDS+oPKahKF0Q=
 github.com/dsnet/compress v0.0.1/go.mod h1:Aw8dCMJ7RioblQeTqt88akK31OvO8Dhf5JflhBbQEHo=
 github.com/dsnet/golib v0.0.0-20171103203638-1ea166775780/go.mod h1:Lj+Z9rebOhdfkVLjJ8T6VcRQv3SXugXy999NBtR9aFY=
