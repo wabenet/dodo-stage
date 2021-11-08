@@ -3,11 +3,11 @@ package command
 import (
 	"fmt"
 
-	"github.com/dodo-cli/dodo-core/pkg/decoder"
 	"github.com/dodo-cli/dodo-core/pkg/plugin"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/dodo-cli/dodo-stage/pkg/config"
 	"github.com/dodo-cli/dodo-stage/pkg/plugin/stage"
-	"github.com/dodo-cli/dodo-stage/pkg/types"
+	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
@@ -36,20 +36,21 @@ func NewListCommand(m plugin.Manager) *cobra.Command {
 		Short: "List stages",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			stages := map[string]*api.Stage{}
+			filenames := []string{}
 			configfiles.GimmeConfigFiles(&configfiles.Options{
 				Name:                      "dodo",
 				Extensions:                []string{"yaml", "yml", "json"},
 				IncludeWorkingDirectories: true,
 				Filter: func(configFile *configfiles.ConfigFile) bool {
-					d := decoder.New(configFile.Path)
-					d.DecodeYaml(configFile.Content, &stages, map[string]decoder.Decoding{
-						"stages": decoder.Map(types.NewStage(), &stages),
-					})
-
+					filenames = append(filenames, configFile.Path)
 					return false
 				},
 			})
+
+			stages, err := config.GetAllStages(filenames...)
+			if err != nil {
+				log.L().Error(err.Error())
+			}
 
 			for name, conf := range stages {
 				s, err := loadPlugin(m, conf.Type)
@@ -175,20 +176,21 @@ func NewSSHCommand(m plugin.Manager) *cobra.Command {
 }
 
 func loadStageConfig(name string) (*api.Stage, error) {
-	stages := map[string]*api.Stage{}
+	filenames := []string{}
 	configfiles.GimmeConfigFiles(&configfiles.Options{
 		Name:                      "dodo",
 		Extensions:                []string{"yaml", "yml", "json"},
 		IncludeWorkingDirectories: true,
 		Filter: func(configFile *configfiles.ConfigFile) bool {
-			d := decoder.New(configFile.Path)
-			d.DecodeYaml(configFile.Content, &stages, map[string]decoder.Decoding{
-				"stages": decoder.Map(types.NewStage(), &stages),
-			})
-
+			filenames = append(filenames, configFile.Path)
 			return false
 		},
 	})
+
+	stages, err := config.GetAllStages(filenames...)
+	if err != nil {
+		log.L().Error(err.Error())
+	}
 
 	if conf, ok := stages[name]; ok {
 		conf.Name = name // TODO: figure out where to set defaults like this

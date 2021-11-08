@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	coreapi "github.com/dodo-cli/dodo-core/api/v1alpha2"
-	"github.com/dodo-cli/dodo-core/pkg/decoder"
 	"github.com/dodo-cli/dodo-core/pkg/plugin"
 	"github.com/dodo-cli/dodo-core/pkg/plugin/runtime"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/dodo-cli/dodo-stage/pkg/config"
 	"github.com/dodo-cli/dodo-stage/pkg/plugin/stage"
-	"github.com/dodo-cli/dodo-stage/pkg/types"
+	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
 )
 
@@ -105,21 +105,22 @@ func (c *ContainerRuntime) StreamContainer(id string, stream *plugin.StreamConfi
 
 func GetAllRuntimePlugins(m plugin.Manager) []plugin.Plugin {
 	plugins := []plugin.Plugin{}
-	stages := map[string]*api.Stage{}
+	filenames := []string{}
 
 	configfiles.GimmeConfigFiles(&configfiles.Options{
 		Name:                      "dodo",
 		Extensions:                []string{"yaml", "yml", "json"},
 		IncludeWorkingDirectories: true,
 		Filter: func(configFile *configfiles.ConfigFile) bool {
-			d := decoder.New(configFile.Path)
-			d.DecodeYaml(configFile.Content, &stages, map[string]decoder.Decoding{
-				"stages": decoder.Map(types.NewStage(), &stages),
-			})
-
+			filenames = append(filenames, configFile.Path)
 			return false
 		},
 	})
+
+	stages, err := config.GetAllStages(filenames...)
+	if err != nil {
+		log.L().Error(err.Error())
+	}
 
 	for name, config := range stages {
 		plugins = append(plugins, &ContainerRuntime{

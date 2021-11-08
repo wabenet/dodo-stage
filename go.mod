@@ -3,6 +3,7 @@ module github.com/dodo-cli/dodo-stage
 go 1.16
 
 require (
+	cuelang.org/go v0.4.0
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/dodo-cli/dodo-core v0.1.1-0.20211021161658-f146cd6923e9
@@ -28,5 +29,4 @@ require (
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.25.0
-	gopkg.in/yaml.v2 v2.4.0
 )
