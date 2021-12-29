@@ -1,0 +1,12 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: dodo-stage
+  description: |
+    An additional plugin framework for dodo to manage (remote) container execution environments
+
+spec:
+  type: library
+  lifecycle: experimental
+  owner: ole.claussen@wabenet.com
