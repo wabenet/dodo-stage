@@ -24,7 +24,7 @@ stages: [string]: #Stage
 }
 
 #Resources: {
-  cpu:     string
+  cpu:     int
   memory:  string
   volumes: #Volumes | [...#Volume] | *[]
   usb:     #USBFilters |[...#USBFilter] | *[]

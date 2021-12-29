@@ -3,14 +3,19 @@ package config
 import (
 	"cuelang.org/go/cue"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/hashicorp/go-multierror"
 )
 
 func ResourcesFromValue(v cue.Value) (*api.Resources, error) {
+	var errs error
+
 	if out, err := ResourcesFromStruct(v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
-	return nil, ErrUnexpectedSpec
+	return nil, errs
 }
 
 func ResourcesFromStruct(v cue.Value) (*api.Resources, error) {

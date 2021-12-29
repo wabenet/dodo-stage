@@ -32,10 +32,7 @@ func (c *ContainerRuntime) PluginInfo() *coreapi.PluginInfo {
 			Type: runtime.Type.String(),
 		},
 		Dependencies: []*coreapi.PluginName{
-			&coreapi.PluginName{
-				Name: c.config.Type,
-				Type: stage.Type.String(),
-			},
+			{Name: c.config.Type, Type: stage.Type.String()},
 		},
 	}
 }

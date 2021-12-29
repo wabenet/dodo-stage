@@ -3,18 +3,25 @@ package config
 import (
 	"cuelang.org/go/cue"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/hashicorp/go-multierror"
 )
 
 func VolumesFromValue(v cue.Value) ([]*api.PersistentVolume, error) {
+	var errs error
+
 	if out, err := VolumesFromMap(v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
 	if out, err := VolumesFromList(v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
-	return nil, ErrUnexpectedSpec
+	return nil, errs
 }
 
 func VolumesFromMap(v cue.Value) ([]*api.PersistentVolume, error) {
@@ -49,11 +56,15 @@ func VolumesFromList(v cue.Value) ([]*api.PersistentVolume, error) {
 }
 
 func VolumeFromValue(name string, v cue.Value) (*api.PersistentVolume, error) {
+	var errs error
+
 	if out, err := VolumeFromStruct(name, v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
-	return nil, ErrUnexpectedSpec
+	return nil, errs
 }
 
 func VolumeFromStruct(name string, v cue.Value) (*api.PersistentVolume, error) {

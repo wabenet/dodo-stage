@@ -1,13 +1,9 @@
 package config
 
 import (
-	"errors"
-
 	"cuelang.org/go/cue"
 	"github.com/alecthomas/units"
 )
-
-var ErrUnexpectedSpec = errors.New("Whelp, we don't match the expected specification. Now what?")
 
 func StringFromValue(v cue.Value) (string, error) {
 	return v.String()

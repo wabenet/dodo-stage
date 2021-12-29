@@ -3,14 +3,19 @@ package config
 import (
 	"cuelang.org/go/cue"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/hashicorp/go-multierror"
 )
 
 func BoxFromValue(v cue.Value) (*api.Box, error) {
+	var errs error
+
 	if out, err := BoxFromStruct(v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
-	return nil, ErrUnexpectedSpec
+	return nil, errs
 }
 
 func BoxFromStruct(v cue.Value) (*api.Box, error) {

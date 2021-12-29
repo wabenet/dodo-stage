@@ -3,18 +3,25 @@ package config
 import (
 	"cuelang.org/go/cue"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/hashicorp/go-multierror"
 )
 
 func USBFiltersFromValue(v cue.Value) ([]*api.UsbFilter, error) {
+	var errs error
+
 	if out, err := USBFiltersFromMap(v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
 	if out, err := USBFiltersFromList(v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
-	return nil, ErrUnexpectedSpec
+	return nil, errs
 }
 
 func USBFiltersFromMap(v cue.Value) ([]*api.UsbFilter, error) {
@@ -49,11 +56,15 @@ func USBFiltersFromList(v cue.Value) ([]*api.UsbFilter, error) {
 }
 
 func USBFilterFromValue(name string, v cue.Value) (*api.UsbFilter, error) {
+	var errs error
+
 	if out, err := USBFilterFromStruct(name, v); err == nil {
 		return out, err
+	} else {
+		errs = multierror.Append(errs, err)
 	}
 
-	return nil, ErrUnexpectedSpec
+	return nil, errs
 }
 
 func USBFilterFromStruct(name string, v cue.Value) (*api.UsbFilter, error) {

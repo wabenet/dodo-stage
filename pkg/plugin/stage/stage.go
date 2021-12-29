@@ -25,7 +25,10 @@ func (t pluginType) GRPCClient() (plugin.Plugin, error) {
 func (t pluginType) GRPCServer(p dodo.Plugin) (plugin.Plugin, error) {
 	config, ok := p.(Stage)
 	if !ok {
-		return nil, dodo.ErrPluginInvalid
+		return nil, dodo.ErrInvalidPlugin{
+			Plugin:  p.PluginInfo().Name,
+			Message: "plugin does not implement Stage API",
+		}
 	}
 	return &grpcPlugin{Impl: config}, nil
 }

@@ -8,22 +8,26 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/encoding/yaml"
-	"github.com/dodo-cli/dodo-stage/pkg/spec"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/dodo-cli/dodo-config/pkg/template"
+	"github.com/dodo-cli/dodo-stage/pkg/spec"
+	"github.com/hashicorp/go-multierror"
 )
 
 type Config struct {
-	Stages map[string]*api.Stage
-	Includes  []string
+	Stages   map[string]*api.Stage
+	Includes []string
 }
 
 func GetAllStages(filenames ...string) (map[string]*api.Stage, error) {
+	var errs error
 	stages := map[string]*api.Stage{}
 
 	for _, filename := range filenames {
 		config, err := ParseConfig(filename)
 		if err != nil {
-			return nil, err
+			errs = multierror.Append(errs, err)
+			continue
 		}
 
 		for name, stage := range config.Stages {
@@ -33,7 +37,8 @@ func GetAllStages(filenames ...string) (map[string]*api.Stage, error) {
 		for _, include := range config.Includes {
 			included, err := GetAllStages(include)
 			if err != nil {
-				return nil, err
+				errs = multierror.Append(errs, err)
+				continue
 			}
 
 			for name, stage := range included {
@@ -42,7 +47,7 @@ func GetAllStages(filenames ...string) (map[string]*api.Stage, error) {
 		}
 	}
 
-	return stages, nil
+	return stages, errs
 }
 
 func ParseConfig(filename string) (*Config, error) {
@@ -63,6 +68,11 @@ func ParseConfig(filename string) (*Config, error) {
 	}
 
 	yamlFile, err := yaml.Extract(filename, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	yamlFile, err = template.TemplateCueAST(yamlFile)
 	if err != nil {
 		return nil, err
 	}
