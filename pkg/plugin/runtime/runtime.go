@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"os"
 
 	coreapi "github.com/dodo-cli/dodo-core/api/v1alpha2"
 	"github.com/dodo-cli/dodo-core/pkg/plugin"
@@ -80,6 +81,15 @@ func (c *ContainerRuntime) DeleteContainer(id string) error {
 	}
 
 	return r.DeleteContainer(id)
+}
+
+func (c *ContainerRuntime) KillContainer(id string, s os.Signal) error {
+	r, err := c.get()
+	if err != nil {
+		return err
+	}
+
+	return r.KillContainer(id, s)
 }
 
 func (c *ContainerRuntime) ResizeContainer(id string, height uint32, width uint32) error {

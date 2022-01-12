@@ -7,7 +7,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/dodo-cli/dodo-config v0.2.1
-	github.com/dodo-cli/dodo-core v0.3.1
+	github.com/dodo-cli/dodo-core v0.4.0
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/frankban/quicktest v1.11.3 // indirect
 	github.com/golang/protobuf v1.4.1
@@ -22,6 +22,8 @@ require (
 	github.com/oclaussen/go-gimme/ssl v0.0.0-20200205175519-d9560e60c720
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
+	github.com/shurcool/vfsgen v0.0.0-20200824052919-0d455de96546 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/ulikunitz/xz v0.5.8 // indirect
