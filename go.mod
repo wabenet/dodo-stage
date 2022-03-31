@@ -22,8 +22,6 @@ require (
 	github.com/oclaussen/go-gimme/ssl v0.0.0-20200205175519-d9560e60c720
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
-	github.com/shurcool/vfsgen v0.0.0-20200824052919-0d455de96546 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/ulikunitz/xz v0.5.8 // indirect

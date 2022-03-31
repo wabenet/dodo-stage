@@ -1,12 +1,12 @@
-//go:generate env GOOS=linux GOARCH=amd64 go build -o assets/stage-designer github.com/dodo-cli/dodo-stage/cmd/stage-designer
-//go:generate go get github.com/shurcool/vfsgen
-//go:generate go run assets_generate.go
+//go:generate env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/stage-designer github.com/dodo-cli/dodo-stage/cmd/stage-designer
 
 package stage
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
+	"strings"
 
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/dodo-cli/dodo-stage/pkg/stagedesigner"
@@ -15,18 +15,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+//go:embed assets/stage-designer
+var StageDesignerBinary string
+
 func Provision(sshOpts *api.SSHOptions, config *stagedesigner.Config) (*stagedesigner.ProvisionResult, error) {
-	file, err := Assets.Open("/stage-designer")
-	if err != nil {
-		return nil, fmt.Errorf("could not open bundled stage designer: %w", err)
-	}
-	defer file.Close()
-
-	stat, err := file.Stat()
-	if err != nil {
-		return nil, fmt.Errorf("could not open bundled stage designer: %w", err)
-	}
-
 	executor, err := ssh.GimmeExecutor(&ssh.Options{
 		Host:              sshOpts.Hostname,
 		Port:              int(sshOpts.Port),
@@ -42,8 +34,8 @@ func Provision(sshOpts *api.SSHOptions, config *stagedesigner.Config) (*stagedes
 	log.L().Debug("write stage designer to stage")
 	if err := executor.WriteFile(&ssh.FileOptions{
 		Path:   "/tmp/stage-designer",
-		Reader: file,
-		Size:   stat.Size(),
+		Reader: strings.NewReader(StageDesignerBinary),
+		Size:   int64(len(StageDesignerBinary)),
 		Mode:   0755,
 	}); err != nil {
 		return nil, fmt.Errorf("could not write stage designer binary: %w", err)
