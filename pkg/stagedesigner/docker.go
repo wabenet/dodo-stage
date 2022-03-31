@@ -16,7 +16,9 @@ const (
 
 	systemdUnitPath     = "/etc/systemd/system/docker.service"
 	systemdUnitTemplate = `[Service]
-ExecStart=
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
 ExecStart={{ .DockerdBinary }} -H tcp://0.0.0.0:{{ .DockerPort }} -H unix:///var/run/docker.sock --storage-driver {{ .StorageDriver }} --tlsverify --tlscacert {{ .CACert }} --tlscert {{ .ServerCert }} --tlskey {{ .ServerKey }} {{ range .DockerArgs }}--{{.}} {{ end }}
 Environment={{range .Environment }}{{ printf "%q" . }} {{end}}
 `
