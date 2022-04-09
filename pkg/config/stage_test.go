@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/dodo-cli/dodo-stage/pkg/config"
@@ -9,15 +8,11 @@ import (
 )
 
 func TestStage(t *testing.T) {
-	cfg, err := config.ParseConfig("test/dodo.yaml")
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	cfg, err := config.GetAllStages("test/dodo.yaml")
 
 	assert.Nil(t, err)
 
-	stage, ok := cfg.Stages["test"]
+	stage, ok := cfg["test"]
 
 	assert.True(t, ok)
 	assert.Equal(t, "someplugin", stage.Type)

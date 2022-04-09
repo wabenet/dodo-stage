@@ -2,6 +2,7 @@ package config
 
 import (
 	"cuelang.org/go/cue"
+	"github.com/dodo-cli/dodo-config/pkg/cuetils"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/hashicorp/go-multierror"
 )
@@ -27,7 +28,7 @@ func VolumesFromValue(v cue.Value) ([]*api.PersistentVolume, error) {
 func VolumesFromMap(v cue.Value) ([]*api.PersistentVolume, error) {
 	out := []*api.PersistentVolume{}
 
-	err := eachInMap(v, func(name string, v cue.Value) error {
+	err := cuetils.IterMap(v, func(name string, v cue.Value) error {
 		r, err := VolumeFromValue(name, v)
 		if err == nil {
 			out = append(out, r)
@@ -43,7 +44,7 @@ func VolumesFromMap(v cue.Value) ([]*api.PersistentVolume, error) {
 func VolumesFromList(v cue.Value) ([]*api.PersistentVolume, error) {
 	out := []*api.PersistentVolume{}
 
-	err := eachInList(v, func(v cue.Value) error {
+	err := cuetils.IterList(v, func(v cue.Value) error {
 		r, err := VolumeFromValue("", v)
 		if err == nil {
 			out = append(out, r)
@@ -70,7 +71,7 @@ func VolumeFromValue(name string, v cue.Value) (*api.PersistentVolume, error) {
 func VolumeFromStruct(name string, v cue.Value) (*api.PersistentVolume, error) {
 	out := &api.PersistentVolume{}
 
-	if p, ok := property(v, "size"); ok {
+	if p, ok := cuetils.Get(v, "size"); ok {
 		if v, err := BytesFromValue(p); err != nil {
 			return nil, err
 		} else {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"cuelang.org/go/cue"
+	"github.com/dodo-cli/dodo-config/pkg/cuetils"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/hashicorp/go-multierror"
 )
@@ -27,7 +28,7 @@ func USBFiltersFromValue(v cue.Value) ([]*api.UsbFilter, error) {
 func USBFiltersFromMap(v cue.Value) ([]*api.UsbFilter, error) {
 	out := []*api.UsbFilter{}
 
-	err := eachInMap(v, func(name string, v cue.Value) error {
+	err := cuetils.IterMap(v, func(name string, v cue.Value) error {
 		r, err := USBFilterFromValue(name, v)
 		if err == nil {
 			out = append(out, r)
@@ -43,7 +44,7 @@ func USBFiltersFromMap(v cue.Value) ([]*api.UsbFilter, error) {
 func USBFiltersFromList(v cue.Value) ([]*api.UsbFilter, error) {
 	out := []*api.UsbFilter{}
 
-	err := eachInList(v, func(v cue.Value) error {
+	err := cuetils.IterList(v, func(v cue.Value) error {
 		r, err := USBFilterFromValue("", v)
 		if err == nil {
 			out = append(out, r)
@@ -70,7 +71,7 @@ func USBFilterFromValue(name string, v cue.Value) (*api.UsbFilter, error) {
 func USBFilterFromStruct(name string, v cue.Value) (*api.UsbFilter, error) {
 	out := &api.UsbFilter{}
 
-	if p, ok := property(v, "name"); ok {
+	if p, ok := cuetils.Get(v, "name"); ok {
 		if v, err := StringFromValue(p); err != nil {
 			return nil, err
 		} else {
@@ -78,7 +79,7 @@ func USBFilterFromStruct(name string, v cue.Value) (*api.UsbFilter, error) {
 		}
 	}
 
-	if p, ok := property(v, "vendorid"); ok {
+	if p, ok := cuetils.Get(v, "vendorid"); ok {
 		if v, err := StringFromValue(p); err != nil {
 			return nil, err
 		} else {
@@ -86,7 +87,7 @@ func USBFilterFromStruct(name string, v cue.Value) (*api.UsbFilter, error) {
 		}
 	}
 
-	if p, ok := property(v, "productid"); ok {
+	if p, ok := cuetils.Get(v, "productid"); ok {
 		if v, err := StringFromValue(p); err != nil {
 			return nil, err
 		} else {

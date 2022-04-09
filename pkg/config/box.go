@@ -2,6 +2,7 @@ package config
 
 import (
 	"cuelang.org/go/cue"
+	"github.com/dodo-cli/dodo-config/pkg/cuetils"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/hashicorp/go-multierror"
 )
@@ -21,7 +22,7 @@ func BoxFromValue(v cue.Value) (*api.Box, error) {
 func BoxFromStruct(v cue.Value) (*api.Box, error) {
 	out := &api.Box{}
 
-	if p, ok := property(v, "user"); ok {
+	if p, ok := cuetils.Get(v, "user"); ok {
 		if n, err := StringFromValue(p); err != nil {
 			return nil, err
 		} else {
@@ -29,7 +30,7 @@ func BoxFromStruct(v cue.Value) (*api.Box, error) {
 		}
 	}
 
-	if p, ok := property(v, "name"); ok {
+	if p, ok := cuetils.Get(v, "name"); ok {
 		if n, err := StringFromValue(p); err != nil {
 			return nil, err
 		} else {
@@ -37,7 +38,7 @@ func BoxFromStruct(v cue.Value) (*api.Box, error) {
 		}
 	}
 
-	if p, ok := property(v, "version"); ok {
+	if p, ok := cuetils.Get(v, "version"); ok {
 		if n, err := StringFromValue(p); err != nil {
 			return nil, err
 		} else {
@@ -45,7 +46,7 @@ func BoxFromStruct(v cue.Value) (*api.Box, error) {
 		}
 	}
 
-	if p, ok := property(v, "access_token"); ok {
+	if p, ok := cuetils.Get(v, "access_token"); ok {
 		if n, err := StringFromValue(p); err != nil {
 			return nil, err
 		} else {

@@ -6,9 +6,9 @@ import (
 	"github.com/dodo-cli/dodo-core/pkg/plugin"
 	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/dodo-cli/dodo-stage/pkg/config"
+	core "github.com/dodo-cli/dodo-core/pkg/config"
 	"github.com/dodo-cli/dodo-stage/pkg/plugin/stage"
 	log "github.com/hashicorp/go-hclog"
-	"github.com/oclaussen/go-gimme/configfiles"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -36,18 +36,7 @@ func NewListCommand(m plugin.Manager) *cobra.Command {
 		Short: "List stages",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			filenames := []string{}
-			configfiles.GimmeConfigFiles(&configfiles.Options{
-				Name:                      "dodo",
-				Extensions:                []string{"yaml", "yml", "json"},
-				IncludeWorkingDirectories: true,
-				Filter: func(configFile *configfiles.ConfigFile) bool {
-					filenames = append(filenames, configFile.Path)
-					return false
-				},
-			})
-
-			stages, err := config.GetAllStages(filenames...)
+			stages, err := config.GetAllStages(core.GetConfigFiles()...)
 			if err != nil {
 				log.L().Error(err.Error())
 			}
@@ -176,18 +165,7 @@ func NewSSHCommand(m plugin.Manager) *cobra.Command {
 }
 
 func loadStageConfig(name string) (*api.Stage, error) {
-	filenames := []string{}
-	configfiles.GimmeConfigFiles(&configfiles.Options{
-		Name:                      "dodo",
-		Extensions:                []string{"yaml", "yml", "json"},
-		IncludeWorkingDirectories: true,
-		Filter: func(configFile *configfiles.ConfigFile) bool {
-			filenames = append(filenames, configFile.Path)
-			return false
-		},
-	})
-
-	stages, err := config.GetAllStages(filenames...)
+	stages, err := config.GetAllStages(core.GetConfigFiles()...)
 	if err != nil {
 		log.L().Error(err.Error())
 	}
