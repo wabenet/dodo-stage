@@ -3,8 +3,8 @@ package config_test
 import (
 	"testing"
 
-	"github.com/dodo-cli/dodo-stage/pkg/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/wabenet/dodo-stage/internal/config"
 )
 
 func TestStage(t *testing.T) {

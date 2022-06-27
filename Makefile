@@ -18,13 +18,13 @@ lint:
 	CGO_ENABLED=0 golangci-lint run --enable-all -D exhaustivestruct
 
 .PHONY: test
-test: api/v1alpha1/stage_plugin.pb.go api/v1alpha1/stage.pb.go
+test: api/v1alpha2/stage_plugin.pb.go api/v1alpha2/stage.pb.go
 	CGO_ENABLED=0 go generate ./...
 	CGO_ENABLED=0 go test -cover ./...
 
 .PHONY: build
-build: api/v1alpha1/stage_plugin.pb.go api/v1alpha1/stage.pb.go
+build: api/v1alpha2/stage_plugin.pb.go api/v1alpha2/stage.pb.go
 	goreleaser build --snapshot --rm-dist
 
 %.pb.go: %.proto
-	protoc --go_out=plugins=grpc:. --go_opt=module=github.com/dodo-cli/dodo-stage $<
+	protoc --go_out=plugins=grpc:. --go_opt=module=github.com/wabenet/dodo-stage $<

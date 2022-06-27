@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dodo-cli/dodo-stage/pkg/stagedesigner"
+	"github.com/wabenet/dodo-stage/pkg/stagedesigner"
 )
 
 func main() {

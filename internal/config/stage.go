@@ -2,8 +2,8 @@ package config
 
 import (
 	"cuelang.org/go/cue"
-	"github.com/dodo-cli/dodo-config/pkg/cuetils"
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
+	"github.com/wabenet/dodo-config/pkg/cuetils"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 )
 
 func StagesFromValue(v cue.Value) (map[string]*api.Stage, error) {

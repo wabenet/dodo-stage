@@ -3,15 +3,16 @@ package command
 import (
 	"fmt"
 
-	"github.com/dodo-cli/dodo-core/pkg/plugin"
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
-	"github.com/dodo-cli/dodo-stage/pkg/config"
-	core "github.com/dodo-cli/dodo-core/pkg/config"
-	"github.com/dodo-cli/dodo-stage/pkg/plugin/stage"
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	core "github.com/wabenet/dodo-core/pkg/config"
+	"github.com/wabenet/dodo-core/pkg/plugin"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
+	"github.com/wabenet/dodo-stage/pkg/proxy"
 )
 
 func New(m plugin.Manager) *Command {

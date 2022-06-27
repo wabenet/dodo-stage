@@ -1,11 +1,11 @@
 package stage
 
 import (
-	dodo "github.com/dodo-cli/dodo-core/pkg/plugin"
-	"github.com/dodo-cli/dodo-core/pkg/plugin/builder"
-	"github.com/dodo-cli/dodo-core/pkg/plugin/runtime"
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/hashicorp/go-plugin"
+	dodo "github.com/wabenet/dodo-core/pkg/plugin"
+	"github.com/wabenet/dodo-core/pkg/plugin/builder"
+	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -25,7 +25,7 @@ func (t pluginType) GRPCClient() (plugin.Plugin, error) {
 func (t pluginType) GRPCServer(p dodo.Plugin) (plugin.Plugin, error) {
 	config, ok := p.(Stage)
 	if !ok {
-		return nil, dodo.ErrInvalidPlugin{
+		return nil, dodo.InvalidError{
 			Plugin:  p.PluginInfo().Name,
 			Message: "plugin does not implement Stage API",
 		}

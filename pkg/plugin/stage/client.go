@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	coreapi "github.com/dodo-cli/dodo-core/api/v1alpha2"
-	"github.com/dodo-cli/dodo-core/pkg/plugin"
-	"github.com/dodo-cli/dodo-core/pkg/plugin/builder"
-	"github.com/dodo-cli/dodo-core/pkg/plugin/runtime"
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/golang/protobuf/ptypes/empty"
+	coreapi "github.com/wabenet/dodo-core/api/v1alpha3"
+	"github.com/wabenet/dodo-core/pkg/plugin"
+	"github.com/wabenet/dodo-core/pkg/plugin/builder"
+	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"golang.org/x/net/context"
 )
 

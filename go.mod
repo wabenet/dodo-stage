@@ -1,4 +1,4 @@
-module github.com/dodo-cli/dodo-stage
+module github.com/wabenet/dodo-stage
 
 go 1.18
 
@@ -6,8 +6,6 @@ require (
 	cuelang.org/go v0.4.0
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4
 	github.com/cavaliercoder/grab v2.0.0+incompatible
-	github.com/dodo-cli/dodo-config v0.3.0
-	github.com/dodo-cli/dodo-core v0.4.2
 	github.com/golang/protobuf v1.4.1
 	github.com/hashicorp/go-hclog v0.15.0
 	github.com/hashicorp/go-multierror v1.0.0
@@ -70,6 +68,8 @@ require (
 	github.com/spf13/viper v1.7.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
+	github.com/wabenet/dodo-config v0.3.1 // indirect
+	github.com/wabenet/dodo-core v0.6.0 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	coreapi "github.com/dodo-cli/dodo-core/api/v1alpha2"
-	"github.com/dodo-cli/dodo-core/pkg/plugin"
-	"github.com/dodo-cli/dodo-core/pkg/plugin/runtime"
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
-	"github.com/dodo-cli/dodo-stage/pkg/config"
-	"github.com/dodo-cli/dodo-stage/pkg/plugin/stage"
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
+	coreapi "github.com/wabenet/dodo-core/api/v1alpha3"
+	"github.com/wabenet/dodo-core/pkg/plugin"
+	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
 
 var _ runtime.ContainerRuntime = &ContainerRuntime{}

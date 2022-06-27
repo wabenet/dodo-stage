@@ -1,4 +1,4 @@
-//go:generate env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/stage-designer github.com/dodo-cli/dodo-stage/cmd/stage-designer
+//go:generate env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/stage-designer github.com/wabenet/dodo-stage/cmd/stage-designer
 
 package stage
 
@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"strings"
 
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
-	"github.com/dodo-cli/dodo-stage/pkg/stagedesigner"
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	"github.com/wabenet/dodo-stage/pkg/stagedesigner"
 )
 
 //go:embed assets/stage-designer

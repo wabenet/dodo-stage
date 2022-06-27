@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package com.github.dodo_cli.dodo_stage.api.v1alpha1;
+package com.wabenet.dodo.stage.v1alpha2;
 
-option go_package = "github.com/dodo-cli/dodo-stage/api/v1alpha1";
+option go_package = "github.com/wabenet/dodo-stage/api/v1alpha2";
 
 message PluginName {
   string type = 1;

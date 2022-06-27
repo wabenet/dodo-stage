@@ -3,8 +3,8 @@ package stage
 import (
 	"fmt"
 
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
 	"github.com/golang/protobuf/ptypes/empty"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"golang.org/x/net/context"
 )
 

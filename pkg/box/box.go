@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/dodo-cli/dodo-core/pkg/config"
-	api "github.com/dodo-cli/dodo-stage/api/v1alpha1"
-	"github.com/dodo-cli/dodo-stage/pkg/integrations/vagrantcloud"
 	"github.com/pkg/errors"
+	"github.com/wabenet/dodo-core/pkg/config"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	"github.com/wabenet/dodo-stage/pkg/integrations/vagrantcloud"
 )
 
 type Box struct {
