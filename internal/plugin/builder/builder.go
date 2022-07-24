@@ -5,7 +5,7 @@ import (
 
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
-	coreapi "github.com/wabenet/dodo-core/api/v1alpha3"
+	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
 	api "github.com/wabenet/dodo-stage/api/v1alpha2"
@@ -47,6 +47,15 @@ func (b *ImageBuilder) Init() (plugin.PluginConfig, error) {
 	}
 
 	return i.Init()
+}
+
+func (b *ImageBuilder) Cleanup() {
+	i, err := b.get()
+	if err != nil {
+		log.L().Error("plugin reset error", "error", err)
+	}
+
+	i.Init()
 }
 
 func (b *ImageBuilder) CreateImage(config *coreapi.BuildInfo, stream *plugin.StreamConfig) (string, error) {

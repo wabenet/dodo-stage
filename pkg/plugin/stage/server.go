@@ -29,6 +29,12 @@ func (s *server) InitPlugin(_ context.Context, _ *empty.Empty) (*api.InitPluginR
 	return &api.InitPluginResponse{Config: config}, nil
 }
 
+func (s *server) ResetPlugin(_ context.Context, _ *empty.Empty) (*empty.Empty, error) {
+	s.impl.Cleanup()
+
+	return &empty.Empty{}, nil
+}
+
 func (s *server) GetStage(ctx context.Context, request *api.GetStageRequest) (*api.GetStageResponse, error) {
 	return s.impl.GetStage(request.Name)
 }
@@ -47,4 +53,8 @@ func (s *server) StartStage(ctx context.Context, request *api.StartStageRequest)
 
 func (s *server) StopStage(ctx context.Context, request *api.StopStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.StopStage(request.Name)
+}
+
+func (s *server) ProvisionStage(ctx context.Context, request *api.ProvisionStageRequest) (*empty.Empty, error) {
+	return &empty.Empty{}, s.impl.ProvisionStage(request.Name)
 }

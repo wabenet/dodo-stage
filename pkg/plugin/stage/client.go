@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	coreapi "github.com/wabenet/dodo-core/api/v1alpha3"
+	log "github.com/hashicorp/go-hclog"
+	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
@@ -46,6 +47,13 @@ func (c *client) Init() (plugin.PluginConfig, error) {
 	return resp.Config, nil
 }
 
+func (c *client) Cleanup() {
+	_, err := c.stageClient.ResetPlugin(context.Background(), &empty.Empty{})
+	if err != nil {
+		log.L().Error("plugin reset error", "error", err)
+	}
+}
+
 func (c *client) GetStage(name string) (*api.GetStageResponse, error) {
 	return c.stageClient.GetStage(context.Background(), &api.GetStageRequest{Name: name})
 }
@@ -70,6 +78,12 @@ func (c *client) StartStage(name string) error {
 
 func (c *client) StopStage(name string) error {
 	_, err := c.stageClient.StopStage(context.Background(), &api.StopStageRequest{Name: name})
+
+	return err
+}
+
+func (c *client) ProvisionStage(name string) error {
+	_, err := c.stageClient.ProvisionStage(context.Background(), &api.ProvisionStageRequest{Name: name})
 
 	return err
 }

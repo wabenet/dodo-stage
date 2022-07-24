@@ -12,7 +12,6 @@ import (
 	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"github.com/wabenet/dodo-stage/internal/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
-	"github.com/wabenet/dodo-stage/pkg/proxy"
 )
 
 func New(m plugin.Manager) *Command {
@@ -26,6 +25,7 @@ func New(m plugin.Manager) *Command {
 	cmd.AddCommand(NewListCommand(m))
 	cmd.AddCommand(NewUpCommand(m))
 	cmd.AddCommand(NewDownCommand(m))
+	cmd.AddCommand(NewProvisionCommand(m))
 	cmd.AddCommand(NewSSHCommand(m))
 
 	return &Command{cmd: cmd}
@@ -86,7 +86,15 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 				return s.CreateStage(conf)
 			}
 
-			return s.StartStage(args[0])
+			if err := s.StartStage(args[0]); err != nil {
+				return err
+			}
+
+			if err := s.ProvisionStage(args[0]); err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 }
@@ -127,6 +135,40 @@ func NewDownCommand(m plugin.Manager) *cobra.Command {
 	flags.BoolVarP(&opts.force, "force", "f", false, "when used with '--rm', don't stop on errors")
 
 	return cmd
+}
+
+func NewProvisionCommand(m plugin.Manager) *cobra.Command {
+	return &cobra.Command{
+		Use:   "provision",
+		Short: "provision a stage",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			conf, err := loadStageConfig(args[0])
+			if err != nil {
+				return err
+			}
+
+			s, err := loadPlugin(m, conf.Type)
+			if err != nil {
+				return err
+			}
+
+			current, err := s.GetStage(args[0])
+			if err != nil {
+				return err
+			}
+
+			if !current.Exist {
+				return errors.New("stage is not up")
+			}
+
+			if err := s.ProvisionStage(args[0]); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
 }
 
 func NewSSHCommand(m plugin.Manager) *cobra.Command {

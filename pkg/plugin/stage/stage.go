@@ -55,6 +55,7 @@ type Stage interface {
 	DeleteStage(string, bool, bool) error
 	StartStage(string) error
 	StopStage(string) error
+	ProvisionStage(string) error
 	GetContainerRuntime(string) (runtime.ContainerRuntime, error)
 	GetImageBuilder(string) (builder.ImageBuilder, error)
 }

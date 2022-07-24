@@ -10,12 +10,14 @@ import "api/v1alpha2/stage_plugin.proto";
 service StagePlugin {
   rpc GetPluginInfo(google.protobuf.Empty) returns (com.wabenet.dodo.stage.v1alpha2.PluginInfo);
   rpc InitPlugin(google.protobuf.Empty) returns (com.wabenet.dodo.stage.v1alpha2.InitPluginResponse);
+  rpc ResetPlugin(google.protobuf.Empty) returns (google.protobuf.Empty);
 
   rpc GetStage(GetStageRequest) returns (GetStageResponse);
   rpc CreateStage(CreateStageRequest) returns (google.protobuf.Empty);
   rpc DeleteStage(DeleteStageRequest) returns (google.protobuf.Empty);
   rpc StartStage(StartStageRequest) returns (google.protobuf.Empty);
   rpc StopStage(StopStageRequest) returns (google.protobuf.Empty);
+  rpc ProvisionStage(ProvisionStageRequest) returns (google.protobuf.Empty);
 }
 
 message Stage {
@@ -82,5 +84,9 @@ message StartStageRequest{
 }
 
 message StopStageRequest {
+  string name = 1;
+}
+
+message ProvisionStageRequest {
   string name = 1;
 }

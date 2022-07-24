@@ -6,7 +6,7 @@ import (
 
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
-	coreapi "github.com/wabenet/dodo-core/api/v1alpha3"
+	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
 	api "github.com/wabenet/dodo-stage/api/v1alpha2"
@@ -45,6 +45,15 @@ func (c *ContainerRuntime) Init() (plugin.PluginConfig, error) {
 	}
 
 	return r.Init()
+}
+
+func (c *ContainerRuntime) Cleanup() {
+	r, err := c.get()
+	if err != nil {
+		log.L().Error("plugin reset error", "error", err)
+	}
+
+	r.Init()
 }
 
 func (c *ContainerRuntime) ResolveImage(spec string) (string, error) {
