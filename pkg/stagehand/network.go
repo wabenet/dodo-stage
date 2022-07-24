@@ -1,4 +1,4 @@
-package stagedesigner
+package stagehand
 
 import (
 	"bufio"

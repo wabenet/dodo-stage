@@ -1,14 +1,12 @@
-package stagedesigner
+package stagehand
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"net"
 	"os/exec"
-	"time"
 
 	"github.com/oclaussen/go-gimme/ssl"
+	"github.com/wabenet/dodo-stage/pkg/stagehand/docker"
 )
 
 func Provision(config *Config) (*ProvisionResult, error) {
@@ -35,11 +33,6 @@ func Provision(config *Config) (*ProvisionResult, error) {
 		}
 	}
 
-	log.Printf("installing docker...")
-	if err := InstallDocker(); err != nil {
-		return nil, err
-	}
-
 	certs, _, err := ssl.GimmeCertificates(&ssl.Options{
 		Org:   fmt.Sprintf("dodo.%s", config.Hostname),
 		Hosts: []string{ip, "localhost"},
@@ -48,23 +41,24 @@ func Provision(config *Config) (*ProvisionResult, error) {
 		return nil, err
 	}
 
-	log.Printf("configuring docker...")
-	if err := ConfigureDocker(&DockerConfig{
+	if err = docker.Provision(&docker.Config{
 		CA:          certs.CA,
 		ServerCert:  certs.ServerCert,
 		ServerKey:   certs.ServerKey,
 		Environment: config.Environment,
 		Arguments:   config.DockerArgs,
+		User:        config.DefaultUser,
 	}); err != nil {
 		return nil, err
 	}
 
-	if err := AddDockerUser(config.DefaultUser); err != nil {
-		return nil, err
-	}
-
-	log.Printf("starting docker...")
-	if err := RestartDocker(); err != nil {
+	log.Printf("install proxy service")
+	if err := InstallProxyService(&ProxyConfig{
+		Address:    "tcp://0.0.0.0:20257",
+		CA:         certs.CA,
+		ServerCert: certs.ServerCert,
+		ServerKey:  certs.ServerKey,
+	}); err != nil {
 		return nil, err
 	}
 
@@ -75,13 +69,13 @@ func Provision(config *Config) (*ProvisionResult, error) {
 		ClientKey:  string(certs.ClientKey),
 	}
 
-	for attempts := 0; attempts < 60; attempts++ {
-		if conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", dockerPort)); err == nil {
-			conn.Close()
-			return result, nil
-		}
-		time.Sleep(5 * time.Second)
+	if err := docker.CheckRunning(); err != nil {
+		return nil, err
 	}
 
-	return nil, errors.New("docker did not start successfully")
+	if err := CheckProxy(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

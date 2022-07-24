@@ -1,18 +1,23 @@
-package stagedesigner
+package docker
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"text/template"
+	"time"
 )
 
 const (
-	dockerPort      = 2376
-	dockerConfigDir = "/etc/docker"
+	Port = 2376
+
+	configDir = "/etc/docker"
 
 	systemdUnitPath     = "/etc/systemd/system/docker.service"
 	systemdUnitTemplate = `[Service]
@@ -31,15 +36,16 @@ DOCKER_OPTS='-H tcp://0.0.0.0:{{ .DockerPort }} -H unix:///var/run/docker.sock -
 `
 )
 
-type DockerConfig struct {
+type Config struct {
 	CA          []byte
 	ServerCert  []byte
 	ServerKey   []byte
 	Environment []string
 	Arguments   []string
+	User        string
 }
 
-type dockerOptionsContext struct {
+type OptionsContext struct {
 	DockerdBinary string
 	DockerPort    int
 	StorageDriver string
@@ -50,7 +56,30 @@ type dockerOptionsContext struct {
 	DockerArgs    []string
 }
 
-func InstallDocker() error {
+func Provision(config *Config) error {
+	log.Printf("installing docker...")
+	if err := Install(); err != nil {
+		return err
+	}
+
+	log.Printf("configuring docker...")
+	if err := Configure(config); err != nil {
+		return err
+	}
+
+	if err := AddUser(config.User); err != nil {
+		return err
+	}
+
+	log.Printf("starting docker...")
+	if err := Restart(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Install() error {
 	if pacman, err := exec.LookPath("pacman"); err == nil {
 		return exec.Command(pacman, "-Sy", "--noconfirm", "--noprogressbar", "docker").Run()
 	} else if zypper, err := exec.LookPath("zypper"); err == nil {
@@ -78,7 +107,7 @@ func InstallDocker() error {
 	return nil
 }
 
-func RestartDocker() error {
+func Restart() error {
 	if systemctl, err := exec.LookPath("systemctl"); err == nil {
 		if err := exec.Command(systemctl, "daemon-reload").Run(); err != nil {
 			return err
@@ -97,7 +126,7 @@ func RestartDocker() error {
 	return nil
 }
 
-func AddDockerUser(user string) error {
+func AddUser(user string) error {
 	if usermod, err := exec.LookPath("usermod"); err == nil {
 		return exec.Command(usermod, "-a", "-G", "docker", user).Run()
 	}
@@ -105,12 +134,12 @@ func AddDockerUser(user string) error {
 	return nil
 }
 
-func ConfigureDocker(config *DockerConfig) error {
-	caPath := filepath.Join(dockerConfigDir, "ca.pem")
-	certPath := filepath.Join(dockerConfigDir, "server.pem")
-	keyPath := filepath.Join(dockerConfigDir, "server-key.pem")
+func Configure(config *Config) error {
+	caPath := filepath.Join(configDir, "ca.pem")
+	certPath := filepath.Join(configDir, "server.pem")
+	keyPath := filepath.Join(configDir, "server-key.pem")
 
-	if err := os.MkdirAll(dockerConfigDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return err
 	}
 
@@ -129,9 +158,9 @@ func ConfigureDocker(config *DockerConfig) error {
 		return err
 	}
 
-	context := dockerOptionsContext{
+	context := OptionsContext{
 		DockerdBinary: dockerd,
-		DockerPort:    dockerPort,
+		DockerPort:    Port,
 		StorageDriver: "overlay2",
 		CACert:        caPath,
 		ServerCert:    certPath,
@@ -165,4 +194,16 @@ func ConfigureDocker(config *DockerConfig) error {
 	}
 
 	return nil
+}
+
+func CheckRunning() error {
+	for attempts := 0; attempts < 60; attempts++ {
+		if conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", Port)); err == nil {
+			conn.Close()
+			return nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	return errors.New("docker did not start successfully")
 }
