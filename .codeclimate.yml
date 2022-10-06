@@ -3,4 +3,13 @@ version: "2"
 
 exclude_patterns:
   - "api/**/*.pb.go"
-  - "**/*_vfsdata.go"
+
+plugins:
+  fixme:
+    enabled: true
+  gofmt:
+    enabled: true
+  golint:
+    enabled: true
+  govet:
+    enabled: true

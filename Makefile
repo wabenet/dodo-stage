@@ -1,5 +1,5 @@
 .PHONY: all
-all: clean test build
+all: clean test build lint
 
 .PHONY: clean
 clean:
@@ -9,22 +9,25 @@ clean:
 fmt:
 	go fmt ./...
 
-.PHONY: tidy
-tidy:
+.PHONY: update
+update:
+	go list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all | xargs --no-run-if-empty go get
 	go mod tidy
 
 .PHONY: lint
 lint:
-	CGO_ENABLED=0 golangci-lint run --enable-all -D exhaustivestruct
+	golangci-lint run
 
 .PHONY: test
-test: api/v1alpha2/stage_plugin.pb.go api/v1alpha2/stage.pb.go
-	CGO_ENABLED=0 go generate ./...
-	CGO_ENABLED=0 go test -cover ./...
+test: api
+	go test -cover -race ./...
 
 .PHONY: build
-build: api/v1alpha2/stage_plugin.pb.go api/v1alpha2/stage.pb.go
+build: api
 	goreleaser build --snapshot --rm-dist
 
+.PHONY: api
+build: $(shell ls api/**/*.proto | sed 's|\.proto|.pb.go|g' | xargs)
+
 %.pb.go: %.proto
-	protoc --go_out=plugins=grpc:. --go_opt=module=github.com/wabenet/dodo-stage $<
+	protoc -I . --go_out=plugins=grpc:. --go_opt=module=github.com/wabenet/dodo-stage $<

@@ -1,0 +1,13 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v0.1.1
+_src_path: https://github.com/wabenet/copier-dodo-plugin
+author_email: ole.claussen@wabenet.com
+author_name: Ole Claussen
+description: An additional plugin framework for dodo to manage (remote) container
+    execution environments.
+go_version: '1.18'
+is_standalone: true
+lifecycle: experimental
+name: stage
+use_protobuf: true
+
