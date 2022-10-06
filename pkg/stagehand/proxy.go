@@ -3,20 +3,16 @@ package stagehand
 import (
 	"errors"
 	"io"
+	"log"
 	"net"
 	"os"
-	"os/user"
 	"path/filepath"
 	"time"
 
-	"github.com/kardianos/service"
+	"github.com/wabenet/dodo-stage/pkg/stagehand/service"
 )
 
 const (
-	name          = "dodo-stage-proxy"
-	qualifiedName = "com.wabenet.dodo.stage.proxy"
-	description   = "dodo proxy"
-
 	configDir = "/etc/dodo"
 	binary    = "/usr/local/bin/dodo-stagehand"
 )
@@ -39,10 +35,6 @@ func (p *program) Stop(_ service.Service) error {
 }
 
 func InstallProxyService(config *ProxyConfig) error {
-	if err := installSelf(); err != nil {
-		return err
-	}
-
 	caPath := filepath.Join(configDir, "ca.pem")
 	certPath := filepath.Join(configDir, "server.pem")
 	keyPath := filepath.Join(configDir, "server-key.pem")
@@ -61,12 +53,9 @@ func InstallProxyService(config *ProxyConfig) error {
 		return err
 	}
 
-	scfg := &service.Config{
-		Name:        qualifiedName,
-		DisplayName: name,
-		Description: description,
-		Option:      map[string]interface{}{},
-		Executable:  binary,
+	svc := &service.Service{
+		Name:   "dodo-stage-proxy",
+		Binary: binary,
 		Arguments: []string{
 			"proxyserver",
 			"--address", config.Address,
@@ -74,27 +63,27 @@ func InstallProxyService(config *ProxyConfig) error {
 			"--tls-cert-file", certPath,
 			"--tls-key-file", keyPath,
 		},
+		Environment: map[string]string{
+			"DODO_LOG_FILE": "-",
+		},
 	}
 
-	if u, err := user.Current(); err == nil && u.Uid != "0" {
-		scfg.UserName = u.Username
-	}
-
-	svc, err := service.New(&program{}, scfg)
-	if err != nil {
-		return err
-	}
-
-	// TODO: implement an update-and-reload on service
-
-	if err := svc.Uninstall(); err != nil {
-		return err
-	}
-
+	log.Printf("install proxy...")
 	if err := svc.Install(); err != nil {
 		return err
 	}
 
+	log.Printf("stop proxy...")
+	if err := svc.Stop(); err != nil {
+		return err
+	}
+
+	log.Printf("copy binary...")
+	if err := installSelf(); err != nil {
+		return err
+	}
+
+	log.Printf("run proxy...")
 	if err := svc.Start(); err != nil {
 		return err
 	}

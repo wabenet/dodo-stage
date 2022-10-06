@@ -1,32 +1,59 @@
-//go:generate env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/stagehand github.com/wabenet/dodo-stage/pkg/provision/stagehand
-
-package provision
+package installer
 
 import (
+	"bufio"
 	"bytes"
-	_ "embed"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
+	"github.com/cavaliercoder/grab"
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
+	"github.com/wabenet/dodo-core/pkg/config"
 	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"
 )
 
-//go:embed assets/stagehand
-var StagehandBinary string
+const (
+	targetPath = "/tmp/dodo/"
+)
 
-const targetPath = "/tmp/dodo/"
+type SSHInstaller struct {
+	DownloadUrl string
+	SSHOptions  *api.SSHOptions
+}
 
-func Provision(sshOpts *api.SSHOptions, config *stagehand.Config) (*stagehand.ProvisionResult, error) {
+func (i *SSHInstaller) Install(cfg *stagehand.Config) (*stagehand.ProvisionResult, error) {
+	localFile := filepath.Join(config.GetAppDir(), "tmp", "stagehand")
+
+	if strings.HasPrefix(i.DownloadUrl, "file://") {
+		localFile = i.DownloadUrl[7:]
+	} else {
+		_, err := grab.Get(localFile, i.DownloadUrl)
+		if err != nil {
+			return nil, fmt.Errorf("could not download stagehand from %s: %w", i.DownloadUrl, err)
+		}
+	}
+
+	f, err := os.Open(localFile)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file: %w", err)
+	}
+
+	stat, err := f.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("could not read file: %w", err)
+	}
+
 	executor, err := ssh.GimmeExecutor(&ssh.Options{
-		Host:              sshOpts.Hostname,
-		Port:              int(sshOpts.Port),
-		User:              sshOpts.Username,
-		IdentityFileGlobs: []string{sshOpts.PrivateKeyFile},
+		Host:              i.SSHOptions.Hostname,
+		Port:              int(i.SSHOptions.Port),
+		User:              i.SSHOptions.Username,
+		IdentityFileGlobs: []string{i.SSHOptions.PrivateKeyFile},
 		NonInteractive:    true,
 	})
 	if err != nil {
@@ -39,17 +66,16 @@ func Provision(sshOpts *api.SSHOptions, config *stagehand.Config) (*stagehand.Pr
 		return nil, errors.Wrap(err, out)
 	}
 
-	// TODO: needs root
 	if err := executor.WriteFile(&ssh.FileOptions{
 		Path:   path.Join(targetPath, "stagehand"),
-		Reader: strings.NewReader(StagehandBinary),
-		Size:   int64(len(StagehandBinary)),
+		Reader: bufio.NewReader(f),
+		Size:   stat.Size(),
 		Mode:   0755,
 	}); err != nil {
 		return nil, fmt.Errorf("could not write stagehand binary: %w", err)
 	}
 
-	encoded, err := stagehand.EncodeConfig(config)
+	encoded, err := stagehand.EncodeConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate stagehand config: %w", err)
 	}
