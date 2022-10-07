@@ -3,7 +3,7 @@ package box
 import (
 	"path/filepath"
 
-	"github.com/cavaliercoder/grab"
+	"github.com/cavaliergopher/grab/v3"
 )
 
 const (

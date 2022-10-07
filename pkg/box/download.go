@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/cavaliercoder/grab"
+	"github.com/cavaliergopher/grab/v3"
 	log "github.com/hashicorp/go-hclog"
 	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
@@ -60,7 +60,7 @@ func tick(resp *grab.Response) {
 	for {
 		select {
 		case <-t.C:
-			fmt.Fprintf(os.Stderr, "%v / %v bytes (%.2f%%)\n", resp.BytesComplete(), resp.Size, 100*resp.Progress())
+			fmt.Fprintf(os.Stderr, "%v / %v bytes (%.2f%%)\n", resp.BytesComplete(), resp.Size(), 100*resp.Progress())
 		case <-resp.Done:
 			return
 		}

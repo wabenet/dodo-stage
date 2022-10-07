@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cavaliercoder/grab"
+	"github.com/cavaliergopher/grab/v3"
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
