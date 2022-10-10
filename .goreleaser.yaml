@@ -5,7 +5,8 @@ before:
     - go generate ./...
 
 builds:
-  - env: ["CGO_ENABLED=0"]
+  - id: plugin
+    env: ["CGO_ENABLED=0"]
     goos: [linux, darwin]
 
   - id: stagehand
@@ -15,9 +16,19 @@ builds:
     goos: [linux]
 
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
+  - id: plugin
+    builds: [plugin]
+    format: binary
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      386: i386
+      amd64: x86_64
+
+  - id: stagehand
+    builds: [stagehand]
+    format: binary
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
       386: i386
       amd64: x86_64
 
