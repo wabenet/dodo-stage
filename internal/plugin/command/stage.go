@@ -83,7 +83,9 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 			}
 
 			if !current.Exist {
-				return s.CreateStage(conf)
+				if err := s.CreateStage(conf); err != nil {
+					return err
+				}
 			}
 
 			if err := s.StartStage(args[0]); err != nil {
