@@ -1,4 +1,6 @@
 ---
+project_name: dodo-stage
+
 before:
   hooks:
     - go mod download
@@ -6,6 +8,7 @@ before:
 
 builds:
   - id: plugin
+    main: ./cmd/dodo-stage
     env: ["CGO_ENABLED=0"]
     goos: [linux, darwin]
 
@@ -19,18 +22,12 @@ archives:
   - id: plugin
     builds: [plugin]
     format: binary
-    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      386: i386
-      amd64: x86_64
+    name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
 
   - id: stagehand
     builds: [stagehand]
     format: binary
-    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      386: i386
-      amd64: x86_64
+    name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
   name_template: 'checksums.txt'
@@ -44,3 +41,4 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^chore:'

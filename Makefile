@@ -24,10 +24,10 @@ test: api
 
 .PHONY: build
 build: api
-	goreleaser build --snapshot --rm-dist
+	goreleaser build --snapshot --clean
 
 .PHONY: api
-build: $(shell ls api/**/*.proto | sed 's|\.proto|.pb.go|g' | xargs)
+api: $(shell find api -name *.proto | sed 's|\.proto|.pb.go|g' | xargs)
 
 %.pb.go: %.proto
-	protoc -I . --go_out=plugins=grpc:. --go_opt=module=github.com/wabenet/dodo-stage $<
+	protoc -I ./api --go_out=plugins=grpc:. --go_opt=module=github.com/wabenet/dodo-stage $<
