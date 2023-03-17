@@ -8,7 +8,7 @@ import (
 
 	"github.com/cavaliergopher/grab/v3"
 	log "github.com/hashicorp/go-hclog"
-	"github.com/mholt/archiver"
+	"github.com/mholt/archiver/v3"
 	"github.com/pkg/errors"
 )
 
@@ -74,7 +74,9 @@ func unarchive(source string, target string) error {
 		&archiver.Zip{OverwriteExisting: true, MkdirAll: true, ImplicitTopLevelFolder: false},
 	}
 	for _, unarchiver := range unarchivers {
-		if err := unarchiver.Unarchive(source, target); err == nil {
+		if err := unarchiver.Unarchive(source, target); err != nil {
+			log.L().Warn("failed to extract box archive", "error", err)
+		} else {
 			return nil
 		}
 	}
