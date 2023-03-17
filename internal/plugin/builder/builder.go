@@ -53,6 +53,8 @@ func (b *ImageBuilder) Cleanup() {
 	i, err := b.get()
 	if err != nil {
 		log.L().Error("plugin reset error", "error", err)
+
+		return
 	}
 
 	i.Init()

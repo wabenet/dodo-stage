@@ -51,6 +51,8 @@ func (c *ContainerRuntime) Cleanup() {
 	r, err := c.get()
 	if err != nil {
 		log.L().Error("plugin reset error", "error", err)
+
+		return
 	}
 
 	r.Init()
