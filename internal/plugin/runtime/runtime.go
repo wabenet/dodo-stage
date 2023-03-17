@@ -157,12 +157,12 @@ func (c *ContainerRuntime) get() (runtime.ContainerRuntime, error) {
 		return nil, err
 	}
 
-	s, err := p.GetContainerRuntime(c.name)
+	s, err := p.GetClient(c.name)
 	if err != nil {
 		return nil, err
 	}
 
-	return s, nil
+	return s.ContainerRuntime, nil
 }
 
 func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {

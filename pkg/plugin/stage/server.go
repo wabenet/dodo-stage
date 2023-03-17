@@ -58,3 +58,12 @@ func (s *server) StopStage(ctx context.Context, request *api.StopStageRequest) (
 func (s *server) ProvisionStage(ctx context.Context, request *api.ProvisionStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.ProvisionStage(request.Name)
 }
+
+func (s *server) GetProxy(ctx context.Context, request *api.GetProxyRequest) (*api.GetProxyResponse, error) {
+	pc, err := s.impl.GetClient(request.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &api.GetProxyResponse{Config: pc.Config}, nil
+}

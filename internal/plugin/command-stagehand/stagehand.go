@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wabenet/dodo-core/pkg/plugin"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"
 )
@@ -26,7 +27,7 @@ func New(m plugin.Manager) *Command {
 }
 
 func NewProxyServerCommand(m plugin.Manager) *cobra.Command {
-	var c proxy.Config
+	var c api.ProxyConfig
 	cmd := &cobra.Command{
 		Use:   "proxyserver",
 		Short: "runs a grpc proxy server",
@@ -41,10 +42,10 @@ func NewProxyServerCommand(m plugin.Manager) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&c.Address, "address", "a", "tcp://0.0.0.0:20257", "listen address")
-	flags.StringVar(&c.CAFile, "tls-ca-file", "", "ca file")
-	flags.StringVar(&c.CertFile, "tls-cert-file", "", "certificate file")
-	flags.StringVar(&c.KeyFile, "tls-key-file", "", "private key file")
+	flags.StringVarP(&c.Url, "address", "a", "tcp://0.0.0.0:20257", "listen address")
+	flags.StringVar(&c.CaPath, "tls-ca-file", "", "ca file")
+	flags.StringVar(&c.CertPath, "tls-cert-file", "", "certificate file")
+	flags.StringVar(&c.KeyPath, "tls-key-file", "", "private key file")
 
 	return cmd
 }

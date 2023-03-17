@@ -32,10 +32,7 @@ func (b *ImageBuilder) PluginInfo() *coreapi.PluginInfo {
 			Type: builder.Type.String(),
 		},
 		Dependencies: []*coreapi.PluginName{
-			&coreapi.PluginName{
-				Name: b.config.Type,
-				Type: stage.Type.String(),
-			},
+			{Name: b.config.Type, Type: stage.Type.String()},
 		},
 	}
 }
@@ -105,12 +102,12 @@ func (b *ImageBuilder) get() (builder.ImageBuilder, error) {
 		return nil, err
 	}
 
-	s, err := p.GetImageBuilder(b.name)
+	s, err := p.GetClient(b.name)
 	if err != nil {
 		return nil, err
 	}
 
-	return s, nil
+	return s.ImageBuilder, nil
 }
 
 func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {

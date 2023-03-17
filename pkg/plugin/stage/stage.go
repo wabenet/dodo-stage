@@ -3,9 +3,8 @@ package stage
 import (
 	"github.com/hashicorp/go-plugin"
 	dodo "github.com/wabenet/dodo-core/pkg/plugin"
-	"github.com/wabenet/dodo-core/pkg/plugin/builder"
-	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
 	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -56,6 +55,5 @@ type Stage interface {
 	StartStage(string) error
 	StopStage(string) error
 	ProvisionStage(string) error
-	GetContainerRuntime(string) (runtime.ContainerRuntime, error)
-	GetImageBuilder(string) (builder.ImageBuilder, error)
+	GetClient(string) (*proxy.Client, error)
 }

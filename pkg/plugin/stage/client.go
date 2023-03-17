@@ -1,16 +1,14 @@
 package stage
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	log "github.com/hashicorp/go-hclog"
 	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	"github.com/wabenet/dodo-core/pkg/plugin/builder"
-	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
 	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"golang.org/x/net/context"
 )
 
@@ -88,10 +86,11 @@ func (c *client) ProvisionStage(name string) error {
 	return err
 }
 
-func (c *client) GetContainerRuntime(name string) (runtime.ContainerRuntime, error) {
-	return nil, errors.New("container runtime over grpc not implemented")
-}
+func (c *client) GetClient(name string) (*proxy.Client, error) {
+	resp, err := c.stageClient.GetProxy(context.Background(), &api.GetProxyRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
 
-func (c *client) GetImageBuilder(name string) (builder.ImageBuilder, error) {
-	return nil, errors.New("image builder over grpc not implemented")
+	return proxy.NewClient(resp.Config)
 }

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net"
 
-	api "github.com/wabenet/dodo-core/api/v1alpha4"
+	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"google.golang.org/grpc"
 )
 
@@ -15,16 +16,17 @@ type Client struct {
 	runtime.ContainerRuntime
 	builder.ImageBuilder
 
-	conn *grpc.ClientConn
+	Config *api.ProxyConfig
+	conn   *grpc.ClientConn
 }
 
-func NewClient(c *Config) (*Client, error) {
-	protocol, addr, err := c.DialOptions()
+func NewClient(c *api.ProxyConfig) (*Client, error) {
+	protocol, addr, err := DialOptions(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid connection config: %w", err)
 	}
 
-	creds, err := c.TLSClientOptions()
+	creds, err := TLSClientOptions(c)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +43,10 @@ func NewClient(c *Config) (*Client, error) {
 	}
 
 	return &Client{
+		Config:           c,
 		conn:             conn,
-		ContainerRuntime: runtime.NewGRPCClient(api.NewRuntimePluginClient(conn)),
-		ImageBuilder:     builder.NewGRPCClient(api.NewBuilderPluginClient(conn)),
+		ContainerRuntime: runtime.NewGRPCClient(coreapi.NewRuntimePluginClient(conn)),
+		ImageBuilder:     builder.NewGRPCClient(coreapi.NewBuilderPluginClient(conn)),
 	}, nil
 }
 

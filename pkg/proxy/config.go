@@ -9,18 +9,12 @@ import (
 	"net/url"
 	"path/filepath"
 
+	api "github.com/wabenet/dodo-stage/api/v1alpha2"
 	"google.golang.org/grpc/credentials"
 )
 
-type Config struct {
-	Address  string
-	CAFile   string
-	CertFile string
-	KeyFile  string
-}
-
-func (c *Config) DialOptions() (string, string, error) {
-	u, err := url.Parse(c.Address)
+func DialOptions(c *api.ProxyConfig) (string, string, error) {
+	u, err := url.Parse(c.Url)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid address: %w", err)
 	}
@@ -41,7 +35,7 @@ func (c *Config) DialOptions() (string, string, error) {
 	return "", "", errors.New("invalid protocol")
 }
 
-func (c *Config) TLSServerOptions() (credentials.TransportCredentials, error) {
+func TLSServerOptions(c *api.ProxyConfig) (credentials.TransportCredentials, error) {
 	tlsConfig := &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		ClientAuth:   tls.RequireAndVerifyClientCert,
@@ -49,14 +43,14 @@ func (c *Config) TLSServerOptions() (credentials.TransportCredentials, error) {
 		ClientCAs:    x509.NewCertPool(),
 	}
 
-	certificate, err := tls.LoadX509KeyPair(c.CertFile, c.KeyFile)
+	certificate, err := tls.LoadX509KeyPair(c.CertPath, c.KeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not load certificate file: %w", err)
 	}
 
 	tlsConfig.Certificates = append(tlsConfig.Certificates, certificate)
 
-	bs, err := ioutil.ReadFile(c.CAFile)
+	bs, err := ioutil.ReadFile(c.CaPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read ca file: %w", err)
 	}
@@ -68,14 +62,14 @@ func (c *Config) TLSServerOptions() (credentials.TransportCredentials, error) {
 	return credentials.NewTLS(tlsConfig), nil
 }
 
-func (c *Config) TLSClientOptions() (credentials.TransportCredentials, error) {
+func TLSClientOptions(c *api.ProxyConfig) (credentials.TransportCredentials, error) {
 	tlsConfig := &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{},
 		RootCAs:      x509.NewCertPool(),
 	}
 
-	u, err := url.Parse(c.Address)
+	u, err := url.Parse(c.Url)
 	if err != nil {
 		return nil, fmt.Errorf("invalid address: %w", err)
 	}
@@ -84,14 +78,14 @@ func (c *Config) TLSClientOptions() (credentials.TransportCredentials, error) {
 		tlsConfig.ServerName = u.Hostname()
 	}
 
-	certificate, err := tls.LoadX509KeyPair(c.CertFile, c.KeyFile)
+	certificate, err := tls.LoadX509KeyPair(c.CertPath, c.KeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not load certificate file: %w", err)
 	}
 
 	tlsConfig.Certificates = append(tlsConfig.Certificates, certificate)
 
-	bs, err := ioutil.ReadFile(c.CAFile)
+	bs, err := ioutil.ReadFile(c.CaPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read ca file: %w", err)
 	}
