@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/wabenet/dodo-stage/pkg/plugin"
+	"github.com/wabenet/dodo-stage"
 )
 
 func main() {

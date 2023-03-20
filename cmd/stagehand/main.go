@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
+	core "github.com/wabenet/dodo-core"
 	plugin "github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/command"
-	core "github.com/wabenet/dodo-core/plugin"
 	stagehand "github.com/wabenet/dodo-stage/internal/plugin/command-stagehand"
 )
 

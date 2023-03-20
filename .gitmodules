@@ -1,0 +1,3 @@
+[submodule ".proto/dodo-core"]
+	path = .proto/dodo-core
+	url = https://github.com/wabenet/dodo-core.git

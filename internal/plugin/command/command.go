@@ -2,7 +2,7 @@ package command
 
 import (
 	"github.com/spf13/cobra"
-	api "github.com/wabenet/dodo-core/api/v1alpha4"
+	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/command"
 )
@@ -19,13 +19,13 @@ func (p *Command) Type() plugin.Type {
 	return command.Type
 }
 
-func (p *Command) PluginInfo() *api.PluginInfo {
-	return &api.PluginInfo{
-		Name: &api.PluginName{Name: name, Type: command.Type.String()},
+func (p *Command) PluginInfo() *core.PluginInfo {
+	return &core.PluginInfo{
+		Name: &core.PluginName{Name: name, Type: command.Type.String()},
 	}
 }
 
-func (*Command) Init() (plugin.PluginConfig, error) {
+func (*Command) Init() (plugin.Config, error) {
 	return map[string]string{}, nil
 }
 

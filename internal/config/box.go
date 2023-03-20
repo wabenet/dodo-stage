@@ -4,7 +4,7 @@ import (
 	"cuelang.org/go/cue"
 	"github.com/hashicorp/go-multierror"
 	"github.com/wabenet/dodo-config/pkg/cuetils"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 )
 
 func BoxFromValue(v cue.Value) (*api.Box, error) {

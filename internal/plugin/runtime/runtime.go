@@ -6,10 +6,10 @@ import (
 
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
-	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
+	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/internal/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
@@ -26,19 +26,19 @@ func (c *ContainerRuntime) Type() plugin.Type {
 	return runtime.Type
 }
 
-func (c *ContainerRuntime) PluginInfo() *coreapi.PluginInfo {
-	return &coreapi.PluginInfo{
-		Name: &coreapi.PluginName{
+func (c *ContainerRuntime) PluginInfo() *core.PluginInfo {
+	return &core.PluginInfo{
+		Name: &core.PluginName{
 			Name: c.name,
 			Type: runtime.Type.String(),
 		},
-		Dependencies: []*coreapi.PluginName{
+		Dependencies: []*core.PluginName{
 			{Name: c.config.Type, Type: stage.Type.String()},
 		},
 	}
 }
 
-func (c *ContainerRuntime) Init() (plugin.PluginConfig, error) {
+func (c *ContainerRuntime) Init() (plugin.Config, error) {
 	r, err := c.get()
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (c *ContainerRuntime) ResolveImage(spec string) (string, error) {
 	return r.ResolveImage(spec)
 }
 
-func (c *ContainerRuntime) CreateContainer(config *coreapi.Backdrop, tty bool, stdio bool) (string, error) {
+func (c *ContainerRuntime) CreateContainer(config *core.Backdrop, tty bool, stdio bool) (string, error) {
 	r, err := c.get()
 	if err != nil {
 		return "", err

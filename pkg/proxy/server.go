@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"net"
 
-	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
+	buildapi "github.com/wabenet/dodo-core/api/build/v1alpha1"
+	runtimeapi "github.com/wabenet/dodo-core/api/runtime/v1alpha1"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +19,7 @@ type Server struct {
 	plugins  plugin.Manager
 }
 
-func NewServer(m plugin.Manager, c *api.ProxyConfig) (*Server, error) {
+func NewServer(m plugin.Manager, c *stage.ProxyConfig) (*Server, error) {
 	protocol, addr, err := DialOptions(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid connection config: %w", err)
@@ -49,11 +50,11 @@ func (s *Server) Listen() error {
 	defer s.listener.Close()
 
 	if rt, err := runtime.GetByName(s.plugins, ""); err == nil {
-		coreapi.RegisterRuntimePluginServer(s.server, runtime.NewGRPCServer(rt))
+		runtimeapi.RegisterPluginServer(s.server, runtime.NewGRPCServer(rt))
 	}
 
 	if b, err := builder.GetByName(s.plugins, ""); err == nil {
-		coreapi.RegisterBuilderPluginServer(s.server, builder.NewGRPCServer(b))
+		buildapi.RegisterPluginServer(s.server, builder.NewGRPCServer(b))
 	}
 
 	return s.server.Serve(s.listener)

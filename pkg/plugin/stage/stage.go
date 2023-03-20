@@ -3,7 +3,7 @@ package stage
 import (
 	"github.com/hashicorp/go-plugin"
 	dodo "github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -38,19 +38,19 @@ type grpcPlugin struct {
 }
 
 func (p *grpcPlugin) GRPCClient(_ context.Context, _ *plugin.GRPCBroker, conn *grpc.ClientConn) (interface{}, error) {
-	return &client{stageClient: api.NewStagePluginClient(conn)}, nil
+	return &client{stageClient: stage.NewPluginClient(conn)}, nil
 }
 
 func (p *grpcPlugin) GRPCServer(_ *plugin.GRPCBroker, s *grpc.Server) error {
-	api.RegisterStagePluginServer(s, &server{impl: p.Impl})
+	stage.RegisterPluginServer(s, &server{impl: p.Impl})
 	return nil
 }
 
 type Stage interface {
 	dodo.Plugin
 
-	GetStage(string) (*api.GetStageResponse, error)
-	CreateStage(*api.Stage) error
+	GetStage(string) (*stage.GetStageResponse, error)
+	CreateStage(*stage.Stage) error
 	DeleteStage(string, bool, bool) error
 	StartStage(string) error
 	StopStage(string) error

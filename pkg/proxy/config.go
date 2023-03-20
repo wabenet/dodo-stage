@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"path/filepath"
 
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"google.golang.org/grpc/credentials"
 )
 

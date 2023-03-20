@@ -14,7 +14,7 @@ import (
 	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	"github.com/wabenet/dodo-core/pkg/config"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"
 )
 

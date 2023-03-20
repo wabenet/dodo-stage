@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"golang.org/x/net/context"
 )
 
@@ -12,21 +13,21 @@ type server struct {
 	impl Stage
 }
 
-func (s *server) GetPluginInfo(_ context.Context, _ *empty.Empty) (*api.PluginInfo, error) {
+func (s *server) GetPluginInfo(_ context.Context, _ *empty.Empty) (*core.PluginInfo, error) {
 	info := s.impl.PluginInfo()
 
-	return &api.PluginInfo{
-		Name: &api.PluginName{Name: info.Name.Name, Type: info.Name.Type},
+	return &core.PluginInfo{
+		Name: &core.PluginName{Name: info.Name.Name, Type: info.Name.Type},
 	}, nil
 }
 
-func (s *server) InitPlugin(_ context.Context, _ *empty.Empty) (*api.InitPluginResponse, error) {
+func (s *server) InitPlugin(_ context.Context, _ *empty.Empty) (*core.InitPluginResponse, error) {
 	config, err := s.impl.Init()
 	if err != nil {
 		return nil, fmt.Errorf("could not initialize plugin: %w", err)
 	}
 
-	return &api.InitPluginResponse{Config: config}, nil
+	return &core.InitPluginResponse{Config: config}, nil
 }
 
 func (s *server) ResetPlugin(_ context.Context, _ *empty.Empty) (*empty.Empty, error) {
@@ -35,35 +36,35 @@ func (s *server) ResetPlugin(_ context.Context, _ *empty.Empty) (*empty.Empty, e
 	return &empty.Empty{}, nil
 }
 
-func (s *server) GetStage(ctx context.Context, request *api.GetStageRequest) (*api.GetStageResponse, error) {
+func (s *server) GetStage(ctx context.Context, request *stage.GetStageRequest) (*stage.GetStageResponse, error) {
 	return s.impl.GetStage(request.Name)
 }
 
-func (s *server) CreateStage(ctx context.Context, request *api.CreateStageRequest) (*empty.Empty, error) {
+func (s *server) CreateStage(ctx context.Context, request *stage.CreateStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.CreateStage(request.Config)
 }
 
-func (s *server) DeleteStage(ctx context.Context, request *api.DeleteStageRequest) (*empty.Empty, error) {
+func (s *server) DeleteStage(ctx context.Context, request *stage.DeleteStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.DeleteStage(request.Name, request.Force, request.Volumes)
 }
 
-func (s *server) StartStage(ctx context.Context, request *api.StartStageRequest) (*empty.Empty, error) {
+func (s *server) StartStage(ctx context.Context, request *stage.StartStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.StartStage(request.Name)
 }
 
-func (s *server) StopStage(ctx context.Context, request *api.StopStageRequest) (*empty.Empty, error) {
+func (s *server) StopStage(ctx context.Context, request *stage.StopStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.StopStage(request.Name)
 }
 
-func (s *server) ProvisionStage(ctx context.Context, request *api.ProvisionStageRequest) (*empty.Empty, error) {
+func (s *server) ProvisionStage(ctx context.Context, request *stage.ProvisionStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.ProvisionStage(request.Name)
 }
 
-func (s *server) GetProxy(ctx context.Context, request *api.GetProxyRequest) (*api.GetProxyResponse, error) {
+func (s *server) GetProxy(ctx context.Context, request *stage.GetProxyRequest) (*stage.GetProxyResponse, error) {
 	pc, err := s.impl.GetClient(request.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	return &api.GetProxyResponse{Config: pc.Config}, nil
+	return &stage.GetProxyResponse{Config: pc.Config}, nil
 }

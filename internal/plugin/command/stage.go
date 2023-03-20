@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	core "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/internal/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )

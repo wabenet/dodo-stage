@@ -5,10 +5,10 @@ import (
 
 	log "github.com/hashicorp/go-hclog"
 	"github.com/oclaussen/go-gimme/configfiles"
-	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
+	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/internal/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
@@ -25,19 +25,19 @@ func (b *ImageBuilder) Type() plugin.Type {
 	return builder.Type
 }
 
-func (b *ImageBuilder) PluginInfo() *coreapi.PluginInfo {
-	return &coreapi.PluginInfo{
-		Name: &coreapi.PluginName{
+func (b *ImageBuilder) PluginInfo() *core.PluginInfo {
+	return &core.PluginInfo{
+		Name: &core.PluginName{
 			Name: b.name,
 			Type: builder.Type.String(),
 		},
-		Dependencies: []*coreapi.PluginName{
+		Dependencies: []*core.PluginName{
 			{Name: b.config.Type, Type: stage.Type.String()},
 		},
 	}
 }
 
-func (b *ImageBuilder) Init() (plugin.PluginConfig, error) {
+func (b *ImageBuilder) Init() (plugin.Config, error) {
 	i, err := b.get()
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (b *ImageBuilder) Cleanup() {
 	i.Init()
 }
 
-func (b *ImageBuilder) CreateImage(config *coreapi.BuildInfo, stream *plugin.StreamConfig) (string, error) {
+func (b *ImageBuilder) CreateImage(config *core.BuildInfo, stream *plugin.StreamConfig) (string, error) {
 	i, err := b.get()
 	if err != nil {
 		return "", err

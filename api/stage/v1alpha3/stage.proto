@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package com.wabenet.dodo.stage.v1alpha2;
+package com.wabenet.dodo.stage.v1alpha3;
 
-option go_package = "github.com/wabenet/dodo-stage/api/v1alpha2";
+option go_package = "github.com/wabenet/dodo-stage/api/stage/v1alpha3";
 
 import "google/protobuf/empty.proto";
-import "api/v1alpha2/stage_plugin.proto";
+import "core/v1alpha5/plugin.proto";
 
-service StagePlugin {
-  rpc GetPluginInfo(google.protobuf.Empty) returns (com.wabenet.dodo.stage.v1alpha2.PluginInfo);
-  rpc InitPlugin(google.protobuf.Empty) returns (com.wabenet.dodo.stage.v1alpha2.InitPluginResponse);
+service Plugin {
+  rpc GetPluginInfo(google.protobuf.Empty) returns (com.wabenet.dodo.core.v1alpha5.PluginInfo);
+  rpc InitPlugin(google.protobuf.Empty) returns (com.wabenet.dodo.core.v1alpha5.InitPluginResponse);
   rpc ResetPlugin(google.protobuf.Empty) returns (google.protobuf.Empty);
 
   rpc GetStage(GetStageRequest) returns (GetStageResponse);

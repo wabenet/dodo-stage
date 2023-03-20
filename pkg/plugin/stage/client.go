@@ -5,9 +5,9 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	log "github.com/hashicorp/go-hclog"
-	coreapi "github.com/wabenet/dodo-core/api/v1alpha4"
+	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/v1alpha2"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"golang.org/x/net/context"
 )
@@ -15,28 +15,28 @@ import (
 var _ Stage = &client{}
 
 type client struct {
-	stageClient api.StagePluginClient
+	stageClient stage.PluginClient
 }
 
 func (c *client) Type() plugin.Type {
 	return Type
 }
 
-func (c *client) PluginInfo() *coreapi.PluginInfo {
+func (c *client) PluginInfo() *core.PluginInfo {
 	info, err := c.stageClient.GetPluginInfo(context.Background(), &empty.Empty{})
 	if err != nil {
-		return &coreapi.PluginInfo{
-			Name:   &coreapi.PluginName{Type: Type.String(), Name: plugin.FailedPlugin},
+		return &core.PluginInfo{
+			Name:   &core.PluginName{Type: Type.String(), Name: plugin.FailedPlugin},
 			Fields: map[string]string{"error": err.Error()},
 		}
 	}
 
-	return &coreapi.PluginInfo{
-		Name: &coreapi.PluginName{Name: info.Name.Name, Type: info.Name.Type},
+	return &core.PluginInfo{
+		Name: &core.PluginName{Name: info.Name.Name, Type: info.Name.Type},
 	}
 }
 
-func (c *client) Init() (plugin.PluginConfig, error) {
+func (c *client) Init() (plugin.Config, error) {
 	resp, err := c.stageClient.InitPlugin(context.Background(), &empty.Empty{})
 	if err != nil {
 		return nil, fmt.Errorf("could not initialize plugin: %w", err)
@@ -52,42 +52,42 @@ func (c *client) Cleanup() {
 	}
 }
 
-func (c *client) GetStage(name string) (*api.GetStageResponse, error) {
-	return c.stageClient.GetStage(context.Background(), &api.GetStageRequest{Name: name})
+func (c *client) GetStage(name string) (*stage.GetStageResponse, error) {
+	return c.stageClient.GetStage(context.Background(), &stage.GetStageRequest{Name: name})
 }
 
-func (c *client) CreateStage(config *api.Stage) error {
-	_, err := c.stageClient.CreateStage(context.Background(), &api.CreateStageRequest{Config: config})
+func (c *client) CreateStage(config *stage.Stage) error {
+	_, err := c.stageClient.CreateStage(context.Background(), &stage.CreateStageRequest{Config: config})
 
 	return err
 }
 
 func (c *client) DeleteStage(name string, force bool, volumes bool) error {
-	_, err := c.stageClient.DeleteStage(context.Background(), &api.DeleteStageRequest{Name: name, Force: force, Volumes: volumes})
+	_, err := c.stageClient.DeleteStage(context.Background(), &stage.DeleteStageRequest{Name: name, Force: force, Volumes: volumes})
 
 	return err
 }
 
 func (c *client) StartStage(name string) error {
-	_, err := c.stageClient.StartStage(context.Background(), &api.StartStageRequest{Name: name})
+	_, err := c.stageClient.StartStage(context.Background(), &stage.StartStageRequest{Name: name})
 
 	return err
 }
 
 func (c *client) StopStage(name string) error {
-	_, err := c.stageClient.StopStage(context.Background(), &api.StopStageRequest{Name: name})
+	_, err := c.stageClient.StopStage(context.Background(), &stage.StopStageRequest{Name: name})
 
 	return err
 }
 
 func (c *client) ProvisionStage(name string) error {
-	_, err := c.stageClient.ProvisionStage(context.Background(), &api.ProvisionStageRequest{Name: name})
+	_, err := c.stageClient.ProvisionStage(context.Background(), &stage.ProvisionStageRequest{Name: name})
 
 	return err
 }
 
 func (c *client) GetClient(name string) (*proxy.Client, error) {
-	resp, err := c.stageClient.GetProxy(context.Background(), &api.GetProxyRequest{Name: name})
+	resp, err := c.stageClient.GetProxy(context.Background(), &stage.GetProxyRequest{Name: name})
 	if err != nil {
 		return nil, err
 	}
