@@ -38,17 +38,18 @@ type Network struct {
 	Device string
 }
 
-func ConfigureNetwork(network Network) (string, error) {
+func ConfigureNetwork(network Network) error {
 	if _, err := exec.LookPath("nmcli"); err == nil {
 		if err := configureNetworkManager(network); err != nil {
-			return "", err
+			return err
 		}
 	} else {
 		if err := configureNetTools(network); err != nil {
-			return "", err
+			return err
 		}
 	}
-	return getIP(network)
+
+	return nil
 }
 
 func configureNetworkManager(network Network) error {
@@ -170,9 +171,9 @@ func replaceBlockInFile(path string, beginMarker string, endMarker string, conte
 	return nil
 }
 
-func getIP(network Network) (string, error) {
+func GetIP(device string) (string, error) {
 	for i := 0; i < 5; i++ {
-		iface, err := net.InterfaceByName(network.Device)
+		iface, err := net.InterfaceByName(device)
 		if err != nil {
 			return "", err
 		}

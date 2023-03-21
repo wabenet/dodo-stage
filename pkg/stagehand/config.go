@@ -11,6 +11,7 @@ type Config struct {
 	DefaultUser       string
 	AuthorizedSSHKeys []string
 	Script            []string
+	NetworkDevice     string
 }
 
 type ProvisionResult struct {

@@ -10,32 +10,46 @@ import (
 )
 
 func Provision(config *Config) (*ProvisionResult, error) {
-	log.Printf("replace insecure SSH key")
-	if err := ConfigureSSHKeys(config); err != nil {
-		return nil, err
+	if len(config.AuthorizedSSHKeys) > 0 {
+		log.Printf("replace insecure SSH key")
+		if err := ConfigureSSHKeys(config); err != nil {
+			return nil, err
+		}
 	}
 
-	log.Printf("configure host network...")
-	ip, err := ConfigureNetwork(Network{Device: "eth1"})
+	dev := "eth0"
+	if config.NetworkDevice != "" {
+		dev = config.NetworkDevice
+		log.Printf("configure host network...")
+		if err := ConfigureNetwork(Network{Device: config.NetworkDevice}); err != nil {
+			return nil, err
+		}
+	}
+
+	ip, err := GetIP(dev)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("set hostname...")
-	if err := ConfigureHostname(config.Hostname); err != nil {
-		return nil, err
+	if config.Hostname != "" {
+		log.Printf("set hostname...")
+		if err := ConfigureHostname(config.Hostname); err != nil {
+			return nil, err
+		}
 	}
 
-	log.Printf("running provision script...")
-	for _, script := range config.Script {
-		if _, err := exec.Command("/bin/sh", "-c", script).CombinedOutput(); err != nil {
-			return nil, err
+	if len(config.Script) > 0 {
+		log.Printf("running provision script...")
+		for _, script := range config.Script {
+			if _, err := exec.Command("/bin/sh", "-c", script).CombinedOutput(); err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	certs, _, err := ssl.GimmeCertificates(&ssl.Options{
 		Org:   fmt.Sprintf("dodo.%s", config.Hostname),
-		Hosts: []string{ip, "localhost"},
+		Hosts: []string{ip, "127.0.0.1", "localhost"},
 	})
 	if err != nil {
 		return nil, err
