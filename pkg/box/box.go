@@ -6,12 +6,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/wabenet/dodo-core/pkg/config"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/pkg/integrations/vagrantcloud"
 )
 
 type Box struct {
-	config      *api.Box
+	config      *Config
 	storagePath string
 	tmpPath     string
 	metadata    *vagrantcloud.Box
@@ -19,7 +18,14 @@ type Box struct {
 	provider    *vagrantcloud.Provider
 }
 
-func Load(conf *api.Box, provider string) (*Box, error) {
+type Config struct {
+	User        string
+	Name        string
+	Version     string
+	AccessToken string
+}
+
+func Load(conf *Config, provider string) (*Box, error) {
 	box := &Box{config: conf}
 	api := vagrantcloud.New(conf.AccessToken)
 	metadata, err := api.GetBox(&vagrantcloud.BoxOptions{Username: conf.User, Name: conf.Name})

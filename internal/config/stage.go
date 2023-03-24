@@ -45,21 +45,5 @@ func StageFromStruct(name string, v cue.Value) (*api.Stage, error) {
 		}
 	}
 
-	if p, ok := cuetils.Get(v, "box"); ok {
-		if n, err := BoxFromValue(p); err != nil {
-			return nil, err
-		} else {
-			out.Box = n
-		}
-	}
-
-	if p, ok := cuetils.Get(v, "resources"); ok {
-		if n, err := ResourcesFromValue(p); err != nil {
-			return nil, err
-		} else {
-			out.Resources = n
-		}
-	}
-
 	return out, nil
 }

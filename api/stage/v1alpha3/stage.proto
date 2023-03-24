@@ -25,32 +25,6 @@ service Plugin {
 message Stage {
   string name = 1;
   string type = 2;
-  Box box = 3;
-  Resources resources = 4;
-}
-
-message Box {
-  string user = 1;
-  string name = 2;
-  string version = 3;
-  string access_token = 4;
-}
-
-message Resources {
-  int64 cpu = 1;
-  int64 memory = 2;
-  repeated PersistentVolume volumes = 3;
-  repeated UsbFilter usb_filters = 4;
-}
-
-message PersistentVolume {
-  int64 size = 1;
-}
-
-message UsbFilter {
-  string name = 1;
-  string vendor_id = 2;
-  string product_id = 3;
 }
 
 message SSHOptions {
