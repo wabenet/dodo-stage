@@ -9,7 +9,6 @@ import (
 	"github.com/cavaliergopher/grab/v3"
 	log "github.com/hashicorp/go-hclog"
 	"github.com/mholt/archiver/v3"
-	"github.com/pkg/errors"
 )
 
 // TODO: automatically check for updates and download if necessary
@@ -73,6 +72,7 @@ func unarchive(source string, target string) error {
 		&archiver.TarGz{Tar: &archiver.Tar{OverwriteExisting: true, MkdirAll: true, ImplicitTopLevelFolder: false}},
 		&archiver.Zip{OverwriteExisting: true, MkdirAll: true, ImplicitTopLevelFolder: false},
 	}
+
 	for _, unarchiver := range unarchivers {
 		if err := unarchiver.Unarchive(source, target); err != nil {
 			log.L().Warn("failed to extract box archive", "error", err)
@@ -80,5 +80,6 @@ func unarchive(source string, target string) error {
 			return nil
 		}
 	}
-	return errors.New("unsupported archive format")
+
+	return fmt.Errorf("unsupported archive format")
 }

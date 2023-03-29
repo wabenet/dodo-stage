@@ -9,16 +9,16 @@ import (
 )
 
 type Box struct {
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
+	CreatedAt           time.Time `json:"created_at"` //nolint: tagliatelle
+	UpdatedAt           time.Time `json:"updated_at"` //nolint: tagliatelle
 	Tag                 string    `json:"tag"`
 	Name                string    `json:"name"`
-	ShortDescription    string    `json:"short_description"`
-	DescriptionHtml     string    `json:"description_html"`
-	DescriptionMarkdown string    `json:"description_markdown"`
+	ShortDescription    string    `json:"short_description"`    //nolint: tagliatelle
+	DescriptionHTML     string    `json:"description_html"`     //nolint: tagliatelle
+	DescriptionMarkdown string    `json:"description_markdown"` //nolint: tagliatelle
 	Username            string    `json:"username"`
 	Private             bool      `json:"private"`
-	CurrentVersion      Version   `json:"current_version"`
+	CurrentVersion      Version   `json:"current_version"` //nolint: tagliatelle
 	Versions            []Version `json:"versions"`
 }
 
@@ -41,6 +41,7 @@ func (b *BoxOptions) toParams() url.Values {
 	params.Add("box[short_description]", b.ShortDescription)
 	params.Add("box[description]", b.Description)
 	params.Add("box[is_private]", strconv.FormatBool(b.IsPrivate))
+
 	return params
 }
 
@@ -49,11 +50,8 @@ func (v *VagrantCloud) GetBox(opts *BoxOptions) (*Box, error) {
 	if err != nil {
 		return nil, err
 	}
-	box := &Box{}
-	if err = json.Unmarshal(body, box); err != nil {
-		return nil, err
-	}
-	return box, nil
+
+	return parseBox(body)
 }
 
 func (v *VagrantCloud) CreateBox(opts *BoxOptions) (*Box, error) {
@@ -61,11 +59,8 @@ func (v *VagrantCloud) CreateBox(opts *BoxOptions) (*Box, error) {
 	if err != nil {
 		return nil, err
 	}
-	box := &Box{}
-	if err = json.Unmarshal(body, box); err != nil {
-		return nil, err
-	}
-	return box, nil
+
+	return parseBox(body)
 }
 
 func (v *VagrantCloud) UpdateBox(opts *BoxOptions) (*Box, error) {
@@ -73,11 +68,8 @@ func (v *VagrantCloud) UpdateBox(opts *BoxOptions) (*Box, error) {
 	if err != nil {
 		return nil, err
 	}
-	box := &Box{}
-	if err = json.Unmarshal(body, box); err != nil {
-		return nil, err
-	}
-	return box, nil
+
+	return parseBox(body)
 }
 
 func (v *VagrantCloud) DeleteBox(opts *BoxOptions) (*Box, error) {
@@ -85,9 +77,15 @@ func (v *VagrantCloud) DeleteBox(opts *BoxOptions) (*Box, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return parseBox(body)
+}
+
+func parseBox(data []byte) (*Box, error) {
 	box := &Box{}
-	if err = json.Unmarshal(body, box); err != nil {
-		return nil, err
+	if err := json.Unmarshal(data, box); err != nil {
+		return nil, fmt.Errorf("could not parse box json: %w", err)
 	}
+
 	return box, nil
 }

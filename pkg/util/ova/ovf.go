@@ -3,11 +3,8 @@ package ova
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -36,8 +33,8 @@ type References struct {
 }
 
 type DiskSection struct {
-	Info string `xml:"Info"`
-	Disk []DiskDetails
+	Info string        `xml:"Info"`
+	Disk []DiskDetails `xml:"Disk"`
 }
 
 type DiskDetails struct {
@@ -107,21 +104,17 @@ type VirtualHardwareItem struct {
 func ReadOVF(path string) (*Envelope, error) {
 	path, err := filepath.Abs(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not determine file path : %w", err)
 	}
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, fmt.Errorf("file %s does not exist", path)
-	}
-
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not read OVF file")
+		return nil, fmt.Errorf("could not read OVF file: %w", err)
 	}
 
 	var envelope Envelope
 	if err := xml.Unmarshal(bytes, &envelope); err != nil {
-		return nil, errors.Wrap(err, "could not parse OVF file")
+		return nil, fmt.Errorf("could not parse OVF file: %w", err)
 	}
 
 	return &envelope, nil

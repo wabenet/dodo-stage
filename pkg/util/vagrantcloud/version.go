@@ -18,14 +18,14 @@ const (
 type Version struct {
 	Version             string     `json:"version"`
 	Status              Status     `json:"status"`
-	DescriptionHtml     string     `json:"description_html"`
-	DescriptionMarkdown string     `json:"description_markdown"`
-	CreatedAt           time.Time  `json:"created_at"`
-	UpdatedAt           time.Time  `json:"updated_at"`
+	DescriptionHTML     string     `json:"description_html"`     //nolint: tagliatelle
+	DescriptionMarkdown string     `json:"description_markdown"` //nolint: tagliatelle
+	CreatedAt           time.Time  `json:"created_at"`           //nolint: tagliatelle
+	UpdatedAt           time.Time  `json:"updated_at"`           //nolint: tagliatelle
 	Number              string     `json:"number"`
 	Downloads           int        `json:"downloads"`
-	ReleaseUrl          string     `json:"release_url"`
-	RevokeUrl           string     `json:"revoke_url"`
+	ReleaseURL          string     `json:"release_url"` //nolint: tagliatelle
+	RevokeURL           string     `json:"revoke_url"`  //nolint: tagliatelle
 	Providers           []Provider `json:"providers"`
 }
 
@@ -44,6 +44,7 @@ func (v *VersionOptions) toParams() url.Values {
 	params := url.Values{}
 	params.Add("version[version]", v.Version)
 	params.Add("version[description]", v.Description)
+
 	return params
 }
 
@@ -52,11 +53,8 @@ func (v *VagrantCloud) GetVersion(opts *VersionOptions) (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	version := &Version{}
-	if err = json.Unmarshal(body, version); err != nil {
-		return nil, err
-	}
-	return version, nil
+
+	return parseVersion(body)
 }
 
 func (v *VagrantCloud) CreateVersion(opts *VersionOptions) (*Version, error) {
@@ -64,11 +62,8 @@ func (v *VagrantCloud) CreateVersion(opts *VersionOptions) (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	version := &Version{}
-	if err = json.Unmarshal(body, version); err != nil {
-		return nil, err
-	}
-	return version, nil
+
+	return parseVersion(body)
 }
 
 func (v *VagrantCloud) UpdateVersion(opts *VersionOptions) (*Version, error) {
@@ -76,11 +71,8 @@ func (v *VagrantCloud) UpdateVersion(opts *VersionOptions) (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	version := &Version{}
-	if err = json.Unmarshal(body, version); err != nil {
-		return nil, err
-	}
-	return version, nil
+
+	return parseVersion(body)
 }
 
 func (v *VagrantCloud) DeleteVersion(opts *VersionOptions) (*Version, error) {
@@ -88,11 +80,8 @@ func (v *VagrantCloud) DeleteVersion(opts *VersionOptions) (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	version := &Version{}
-	if err = json.Unmarshal(body, version); err != nil {
-		return nil, err
-	}
-	return version, nil
+
+	return parseVersion(body)
 }
 
 func (v *VagrantCloud) Release(opts *VersionOptions) (*Version, error) {
@@ -100,11 +89,8 @@ func (v *VagrantCloud) Release(opts *VersionOptions) (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	version := &Version{}
-	if err = json.Unmarshal(body, version); err != nil {
-		return nil, err
-	}
-	return version, nil
+
+	return parseVersion(body)
 }
 
 func (v *VagrantCloud) Revoke(opts *VersionOptions) (*Version, error) {
@@ -112,9 +98,15 @@ func (v *VagrantCloud) Revoke(opts *VersionOptions) (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	version := &Version{}
-	if err = json.Unmarshal(body, version); err != nil {
-		return nil, err
+
+	return parseVersion(body)
+}
+
+func parseVersion(data []byte) (*Version, error) {
+	v := &Version{}
+	if err := json.Unmarshal(data, v); err != nil {
+		return nil, fmt.Errorf("could not parse version json: %w", err)
 	}
-	return version, nil
+
+	return v, nil
 }

@@ -1,18 +1,20 @@
 package vagrantcloud
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
 const (
-	baseUrl = "https://vagrantcloud.com/api/v1"
+	baseURL = "https://vagrantcloud.com/api/v1"
 )
+
+var ErrAPIError = errors.New("vagrant API answered with non-ok response")
 
 type VagrantCloud struct {
 	accessToken string
@@ -67,35 +69,40 @@ func (v *VagrantCloud) upload(path string, data io.Reader) ([]byte, error) {
 	)
 }
 
-func (v *VagrantCloud) request(method string, path string, contentType string, data io.Reader) ([]byte, error) {
-	requestUri, err := url.ParseRequestURI(baseUrl + path)
+func (v *VagrantCloud) request(method, path, contentType string, data io.Reader) ([]byte, error) {
+	requestURI, err := url.ParseRequestURI(baseURL + path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid URI: %w", err)
 	}
 
 	if v.accessToken != "" {
-		query := requestUri.Query()
+		query := requestURI.Query()
 		query.Set("access_token", v.accessToken)
-		requestUri.RawQuery = query.Encode()
+		requestURI.RawQuery = query.Encode()
 	}
 
-	req, err := http.NewRequest(method, requestUri.String(), data)
+	req, err := http.NewRequest(method, requestURI.String(), data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error preparing request: %w", err)
 	}
+
+	req = req.WithContext(context.Background())
 	req.Header.Set("Content-Type", contentType)
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error during HTTP request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading response: %w", err)
 	}
-	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprint(resp.StatusCode))
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %d", ErrAPIError, resp.StatusCode)
 	}
+
 	return body, nil
 }

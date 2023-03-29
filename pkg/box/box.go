@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/wabenet/dodo-core/pkg/config"
-	"github.com/wabenet/dodo-stage/pkg/integrations/vagrantcloud"
+	"github.com/wabenet/dodo-stage/pkg/util/vagrantcloud"
 )
 
 type Box struct {
