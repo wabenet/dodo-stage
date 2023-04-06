@@ -41,7 +41,7 @@ func (s *server) GetStage(ctx context.Context, request *stage.GetStageRequest) (
 }
 
 func (s *server) CreateStage(ctx context.Context, request *stage.CreateStageRequest) (*empty.Empty, error) {
-	return &empty.Empty{}, s.impl.CreateStage(request.Config)
+	return &empty.Empty{}, s.impl.CreateStage(request.Name)
 }
 
 func (s *server) DeleteStage(ctx context.Context, request *stage.DeleteStageRequest) (*empty.Empty, error) {

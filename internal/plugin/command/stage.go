@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	core "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/internal/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
@@ -83,7 +82,7 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 			}
 
 			if !current.Exist {
-				if err := s.CreateStage(conf); err != nil {
+				if err := s.CreateStage(args[0]); err != nil {
 					return err
 				}
 			}
@@ -209,7 +208,7 @@ func NewSSHCommand(m plugin.Manager) *cobra.Command {
 	}
 }
 
-func loadStageConfig(name string) (*api.Stage, error) {
+func loadStageConfig(name string) (*config.Stage, error) {
 	stages, err := config.GetAllStages(core.GetConfigFiles()...)
 	if err != nil {
 		log.L().Error(err.Error())

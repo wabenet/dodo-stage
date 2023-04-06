@@ -56,8 +56,8 @@ func (c *client) GetStage(name string) (*stage.GetStageResponse, error) {
 	return c.stageClient.GetStage(context.Background(), &stage.GetStageRequest{Name: name})
 }
 
-func (c *client) CreateStage(config *stage.Stage) error {
-	_, err := c.stageClient.CreateStage(context.Background(), &stage.CreateStageRequest{Config: config})
+func (c *client) CreateStage(name string) error {
+	_, err := c.stageClient.CreateStage(context.Background(), &stage.CreateStageRequest{Name: name})
 
 	return err
 }

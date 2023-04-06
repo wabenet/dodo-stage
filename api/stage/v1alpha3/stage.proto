@@ -22,11 +22,6 @@ service Plugin {
   rpc GetProxy(GetProxyRequest) returns (GetProxyResponse);
 }
 
-message Stage {
-  string name = 1;
-  string type = 2;
-}
-
 message SSHOptions {
   string hostname         = 1;
   int32  port             = 2;
@@ -46,19 +41,19 @@ message GetStageRequest {
 }
 
 message GetStageResponse {
-  string name = 1;
-  bool exist = 2;
-  bool available = 3;
+  string name            = 1;
+  bool exist             = 2;
+  bool available         = 3;
   SSHOptions ssh_options = 4;
 }
 
 message CreateStageRequest {
-  Stage config = 1;
+  string name = 1;
 }
 
 message DeleteStageRequest {
-  string name = 1;
-  bool force = 2;
+  string name  = 1;
+  bool force   = 2;
   bool volumes = 3;
 }
 

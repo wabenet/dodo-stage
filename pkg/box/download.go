@@ -28,7 +28,7 @@ func (box *Box) Download() error {
 	)
 
 	client := grab.NewClient()
-	req, err := grab.NewRequest(filepath.Join(box.tmpPath, filename), box.provider.DownloadUrl)
+	req, err := grab.NewRequest(filepath.Join(box.tmpPath, filename), box.provider.DownloadURL)
 	if err != nil {
 		return err
 	}

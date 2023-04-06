@@ -8,7 +8,6 @@ import (
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/internal/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
@@ -17,7 +16,7 @@ var _ builder.ImageBuilder = &ImageBuilder{}
 
 type ImageBuilder struct {
 	name    string
-	config  *api.Stage
+	config  *config.Stage
 	manager plugin.Manager
 }
 

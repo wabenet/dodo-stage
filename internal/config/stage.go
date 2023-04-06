@@ -3,15 +3,19 @@ package config
 import (
 	"cuelang.org/go/cue"
 	"github.com/wabenet/dodo-config/pkg/cuetils"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 )
 
-func StagesFromValue(v cue.Value) (map[string]*api.Stage, error) {
+type Stage struct {
+	Name string
+	Type string
+}
+
+func StagesFromValue(v cue.Value) (map[string]*Stage, error) {
 	return StagesFromMap(v)
 }
 
-func StagesFromMap(v cue.Value) (map[string]*api.Stage, error) {
-	out := map[string]*api.Stage{}
+func StagesFromMap(v cue.Value) (map[string]*Stage, error) {
+	out := map[string]*Stage{}
 
 	err := cuetils.IterMap(v, func(name string, v cue.Value) error {
 		r, err := StageFromStruct(name, v)
@@ -26,8 +30,8 @@ func StagesFromMap(v cue.Value) (map[string]*api.Stage, error) {
 	return out, err
 }
 
-func StageFromStruct(name string, v cue.Value) (*api.Stage, error) {
-	out := &api.Stage{Name: name}
+func StageFromStruct(name string, v cue.Value) (*Stage, error) {
+	out := &Stage{Name: name}
 
 	if p, ok := cuetils.Get(v, "name"); ok {
 		if n, err := StringFromValue(p); err != nil {

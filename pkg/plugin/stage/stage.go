@@ -50,7 +50,7 @@ type Stage interface {
 	dodo.Plugin
 
 	GetStage(string) (*stage.GetStageResponse, error)
-	CreateStage(*stage.Stage) error
+	CreateStage(string) error
 	DeleteStage(string, bool, bool) error
 	StartStage(string) error
 	StopStage(string) error

@@ -4,13 +4,12 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/wabenet/dodo-config/pkg/cuetils"
 	"github.com/wabenet/dodo-config/pkg/includes"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/pkg/spec"
 )
 
-func GetAllStages(filenames ...string) (map[string]*api.Stage, error) {
+func GetAllStages(filenames ...string) (map[string]*Stage, error) {
 	var errs error
-	stages := map[string]*api.Stage{}
+	stages := map[string]*Stage{}
 
 	resolved, err := includes.ResolveIncludes(filenames...)
 	if err != nil {
