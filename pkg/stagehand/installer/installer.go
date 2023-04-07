@@ -11,11 +11,11 @@ import (
 
 	"github.com/cavaliergopher/grab/v3"
 	log "github.com/hashicorp/go-hclog"
-	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	"github.com/wabenet/dodo-core/pkg/config"
 	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"
+	"github.com/wabenet/dodo-stage/pkg/util/ssh"
 )
 
 const (
@@ -49,13 +49,7 @@ func (i *SSHInstaller) Install(cfg *stagehand.Config) (*stagehand.ProvisionResul
 		return nil, fmt.Errorf("could not read file: %w", err)
 	}
 
-	executor, err := ssh.GimmeExecutor(&ssh.Options{
-		Host:              i.SSHOptions.Hostname,
-		Port:              int(i.SSHOptions.Port),
-		User:              i.SSHOptions.Username,
-		IdentityFileGlobs: []string{i.SSHOptions.PrivateKeyFile},
-		NonInteractive:    true,
-	})
+	executor, err := ssh.NewExecutor(i.SSHOptions)
 	if err != nil {
 		return nil, fmt.Errorf("could not get SSH connection to stage: %w", err)
 	}
@@ -81,7 +75,7 @@ func (i *SSHInstaller) Install(cfg *stagehand.Config) (*stagehand.ProvisionResul
 	}
 	if err := executor.WriteFile(&ssh.FileOptions{
 		Path: path.Join(targetPath, "config.json"),
-		// TODO: this is a bug in gimme. Fix it!
+		// TODO: this is a bug in ssh util. Fix it!
 		//Content: encoded,
 		Reader: bytes.NewReader(encoded),
 		Size:   int64(len(encoded)),

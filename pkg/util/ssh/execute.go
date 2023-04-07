@@ -30,22 +30,29 @@ func NewExecutor(opts *stage.SSHOptions) (*Executor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Executor{client: client, Stderr: os.Stderr}, nil
 }
 
 func (executor *Executor) Close() error {
-	return executor.client.Close()
+	if err := executor.client.Close(); err != nil {
+		return fmt.Errorf("could not close ssh client: %w", err)
+	}
+
+	return nil
 }
 
 func (executor *Executor) forwardStderr(session *ssh.Session) {
 	reader, err := session.StderrPipe()
-
 	if err != nil {
 		fmt.Fprintf(executor.Stderr, "error: %v", err)
+
 		return
 	}
+
 	if _, err := io.Copy(executor.Stderr, reader); err != nil {
 		fmt.Fprintf(executor.Stderr, "error: %v", err)
+
 		return
 	}
 }
@@ -53,20 +60,26 @@ func (executor *Executor) forwardStderr(session *ssh.Session) {
 func (executor *Executor) Execute(cmd string) (string, error) {
 	session, err := executor.client.NewSession()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("could not start ssh session: %w", err)
 	}
+
 	defer session.Close()
 	go executor.forwardStderr(session)
 
 	output, err := session.Output(cmd)
-	return string(output), err
+	if err != nil {
+		return string(output), fmt.Errorf("could not get ssh output: %w", err)
+	}
+
+	return string(output), nil
 }
 
 func (executor *Executor) WriteFile(opts *FileOptions) error {
 	session, err := executor.client.NewSession()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not start ssh session: %w", err)
 	}
+
 	defer session.Close()
 	go executor.forwardStderr(session)
 
@@ -80,41 +93,54 @@ func (executor *Executor) WriteFile(opts *FileOptions) error {
 		writer, err := session.StdinPipe()
 		if err != nil {
 			errCh <- err
+
 			return
 		}
+
 		defer writer.Close()
 
-		if _, err := fmt.Fprintln(writer, fmt.Sprintf("C%#o", opts.Mode.Perm()), opts.Size, path.Base(opts.Path)); err != nil {
+		if _, err := fmt.Fprintln(
+			writer,
+			fmt.Sprintf("C%#o", opts.Mode.Perm()),
+			opts.Size,
+			path.Base(opts.Path),
+		); err != nil {
 			errCh <- err
+
 			return
 		}
 
 		if _, err := io.Copy(writer, opts.Reader); err != nil {
 			errCh <- err
+
 			return
 		}
 
 		if _, err := fmt.Fprint(writer, "\x00"); err != nil {
 			errCh <- err
+
 			return
 		}
 	}()
 
 	go func() {
 		defer wait.Done()
+
 		if out, err := session.CombinedOutput(fmt.Sprintf("sudo scp -qt %s", path.Dir(opts.Path))); err != nil {
 			errCh <- errors.Wrap(err, string(out))
+
 			return
 		}
 	}()
 
 	wait.Wait()
-
 	close(errCh)
+
 	for err := range errCh {
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

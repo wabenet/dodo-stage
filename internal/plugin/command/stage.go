@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	log "github.com/hashicorp/go-hclog"
-	"github.com/oclaussen/go-gimme/ssh"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	core "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-stage/internal/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
+	"github.com/wabenet/dodo-stage/pkg/util/ssh"
 )
 
 func New(m plugin.Manager) *Command {
@@ -197,13 +197,7 @@ func NewSSHCommand(m plugin.Manager) *cobra.Command {
 				return errors.New("stage is not up")
 			}
 
-			return ssh.GimmeShell(&ssh.Options{
-				Host:              current.SshOptions.Hostname,
-				Port:              int(current.SshOptions.Port),
-				User:              current.SshOptions.Username,
-				IdentityFileGlobs: []string{current.SshOptions.PrivateKeyFile},
-				NonInteractive:    true,
-			})
+			return ssh.Shell(current.SshOptions)
 		},
 	}
 }

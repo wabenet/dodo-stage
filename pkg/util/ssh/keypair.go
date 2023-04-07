@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"os"
 
@@ -16,8 +15,6 @@ const (
 	defaultKeyLength = 2048
 	permPrivateFile  = 0o600
 )
-
-var ErrNoPEMData = errors.New("no PEM data")
 
 type KeyPair struct {
 	PrivateKey []byte
