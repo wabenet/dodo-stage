@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
 	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"
 )
@@ -27,7 +27,7 @@ func New(m plugin.Manager) *Command {
 }
 
 func NewProxyServerCommand(m plugin.Manager) *cobra.Command {
-	var c api.ProxyConfig
+	var c provision.ProxyConfig
 	cmd := &cobra.Command{
 		Use:   "proxyserver",
 		Short: "runs a grpc proxy server",

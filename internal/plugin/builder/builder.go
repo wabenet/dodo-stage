@@ -9,6 +9,7 @@ import (
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
 	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
 
@@ -31,7 +32,7 @@ func (b *ImageBuilder) PluginInfo() *core.PluginInfo {
 			Type: builder.Type.String(),
 		},
 		Dependencies: []*core.PluginName{
-			{Name: b.config.Type, Type: stage.Type.String()},
+			{Name: "stagehand", Type: provision.Type.String()},
 		},
 	}
 }
@@ -96,20 +97,30 @@ func GetAllBuilderPlugins(m plugin.Manager) []plugin.Plugin {
 }
 
 func (b *ImageBuilder) get() (builder.ImageBuilder, error) {
-	p, err := loadPlugin(b.manager, b.config.Type)
+	s, err := loadStagePlugin(b.manager, b.config.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	s, err := p.GetClient(b.name)
+	p, err := loadProvisionPlugin(b.manager, "stagehand")
 	if err != nil {
 		return nil, err
 	}
 
-	return s.ImageBuilder, nil
+	status, err := s.GetStage(b.name)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := p.GetClient(status.Info)
+	if err != nil {
+		return nil, err
+	}
+
+	return client.ImageBuilder, nil
 }
 
-func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {
+func loadStagePlugin(m plugin.Manager, name string) (stage.Stage, error) {
 	for _, p := range m.GetPlugins(stage.Type.String()) {
 		s := p.(stage.Stage)
 		if info := s.PluginInfo(); info.Name.Name == name {
@@ -118,4 +129,15 @@ func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {
 	}
 
 	return nil, fmt.Errorf("could not find any stage plugin for type '%s'", name)
+}
+
+func loadProvisionPlugin(m plugin.Manager, name string) (provision.Provisioner, error) {
+	for _, p := range m.GetPlugins(provision.Type.String()) {
+		s := p.(provision.Provisioner)
+		if info := s.PluginInfo(); info.Name.Name == name {
+			return s, nil
+		}
+	}
+
+	return nil, fmt.Errorf("could not find any stage provisioner plugin for type '%s'", name)
 }

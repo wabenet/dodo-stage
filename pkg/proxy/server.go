@@ -9,7 +9,7 @@ import (
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
 	"google.golang.org/grpc"
 )
 
@@ -19,7 +19,7 @@ type Server struct {
 	plugins  plugin.Manager
 }
 
-func NewServer(m plugin.Manager, c *stage.ProxyConfig) (*Server, error) {
+func NewServer(m plugin.Manager, c *provision.ProxyConfig) (*Server, error) {
 	protocol, addr, err := DialOptions(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid connection config: %w", err)

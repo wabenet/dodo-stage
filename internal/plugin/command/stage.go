@@ -8,7 +8,9 @@ import (
 	"github.com/spf13/cobra"
 	core "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
 	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 	"github.com/wabenet/dodo-stage/pkg/util/ssh"
 )
@@ -42,7 +44,7 @@ func NewListCommand(m plugin.Manager) *cobra.Command {
 			}
 
 			for name, conf := range stages {
-				s, err := loadPlugin(m, conf.Type)
+				s, err := loadStagePlugin(m, conf.Type)
 				if err != nil {
 					return err
 				}
@@ -52,7 +54,7 @@ func NewListCommand(m plugin.Manager) *cobra.Command {
 					return err
 				}
 
-				fmt.Printf("%s (%v)", name, current.Available)
+				fmt.Printf("%s (%v)", name, current.Info.Status)
 			}
 
 			return nil
@@ -71,7 +73,12 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			s, err := loadPlugin(m, conf.Type)
+			s, err := loadStagePlugin(m, conf.Type)
+			if err != nil {
+				return err
+			}
+
+			p, err := loadProvisionPlugin(m, "stagehand")
 			if err != nil {
 				return err
 			}
@@ -81,7 +88,7 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			if !current.Exist {
+			if current.Info.Status == api.StageStatus_NONE {
 				if err := s.CreateStage(args[0]); err != nil {
 					return err
 				}
@@ -91,7 +98,12 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			if err := s.ProvisionStage(args[0]); err != nil {
+			status, err := s.GetStage(args[0])
+			if err != nil {
+				return err
+			}
+
+			if err := p.ProvisionStage(status.Info, status.SshOptions); err != nil {
 				return err
 			}
 
@@ -118,7 +130,7 @@ func NewDownCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			s, err := loadPlugin(m, conf.Type)
+			s, err := loadStagePlugin(m, conf.Type)
 			if err != nil {
 				return err
 			}
@@ -149,7 +161,12 @@ func NewProvisionCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			s, err := loadPlugin(m, conf.Type)
+			s, err := loadStagePlugin(m, conf.Type)
+			if err != nil {
+				return err
+			}
+
+			p, err := loadProvisionPlugin(m, "stagehand")
 			if err != nil {
 				return err
 			}
@@ -159,11 +176,16 @@ func NewProvisionCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			if !current.Exist {
+			if current.Info.Status != api.StageStatus_UP {
 				return errors.New("stage is not up")
 			}
 
-			if err := s.ProvisionStage(args[0]); err != nil {
+			status, err := s.GetStage(args[0])
+			if err != nil {
+				return err
+			}
+
+			if err := p.ProvisionStage(status.Info, status.SshOptions); err != nil {
 				return err
 			}
 
@@ -183,7 +205,7 @@ func NewSSHCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			s, err := loadPlugin(m, conf.Type)
+			s, err := loadStagePlugin(m, conf.Type)
 			if err != nil {
 				return err
 			}
@@ -193,7 +215,7 @@ func NewSSHCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			if !current.Available {
+			if current.Info.Status != api.StageStatus_UP {
 				return errors.New("stage is not up")
 			}
 
@@ -217,7 +239,7 @@ func loadStageConfig(name string) (*config.Stage, error) {
 	return nil, fmt.Errorf("could not find any configuration for stage '%s'", name)
 }
 
-func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {
+func loadStagePlugin(m plugin.Manager, name string) (stage.Stage, error) {
 	for _, p := range m.GetPlugins(stage.Type.String()) {
 		s := p.(stage.Stage)
 		if info := s.PluginInfo(); info.Name.Name == name {
@@ -226,4 +248,15 @@ func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {
 	}
 
 	return nil, fmt.Errorf("could not find any stage plugin for type '%s'", name)
+}
+
+func loadProvisionPlugin(m plugin.Manager, name string) (provision.Provisioner, error) {
+	for _, p := range m.GetPlugins(provision.Type.String()) {
+		s := p.(provision.Provisioner)
+		if info := s.PluginInfo(); info.Name.Name == name {
+			return s, nil
+		}
+	}
+
+	return nil, fmt.Errorf("could not find any stage provisioner plugin for type '%s'", name)
 }

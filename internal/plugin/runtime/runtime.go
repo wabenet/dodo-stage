@@ -10,6 +10,7 @@ import (
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
 	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
 
@@ -32,7 +33,7 @@ func (c *ContainerRuntime) PluginInfo() *core.PluginInfo {
 			Type: runtime.Type.String(),
 		},
 		Dependencies: []*core.PluginName{
-			{Name: c.config.Type, Type: stage.Type.String()},
+			{Name: "stagehand", Type: provision.Type.String()},
 		},
 	}
 }
@@ -151,20 +152,30 @@ func GetAllRuntimePlugins(m plugin.Manager) []plugin.Plugin {
 }
 
 func (c *ContainerRuntime) get() (runtime.ContainerRuntime, error) {
-	p, err := loadPlugin(c.manager, c.config.Type)
+	s, err := loadStagePlugin(c.manager, c.config.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	s, err := p.GetClient(c.name)
+	p, err := loadProvisionPlugin(c.manager, "stagehand")
 	if err != nil {
 		return nil, err
 	}
 
-	return s.ContainerRuntime, nil
+	status, err := s.GetStage(c.name)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := p.GetClient(status.Info)
+	if err != nil {
+		return nil, err
+	}
+
+	return client.ContainerRuntime, nil
 }
 
-func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {
+func loadStagePlugin(m plugin.Manager, name string) (stage.Stage, error) {
 	for _, p := range m.GetPlugins(stage.Type.String()) {
 		s := p.(stage.Stage)
 		if info := s.PluginInfo(); info.Name.Name == name {
@@ -173,4 +184,15 @@ func loadPlugin(m plugin.Manager, name string) (stage.Stage, error) {
 	}
 
 	return nil, fmt.Errorf("could not find any stage plugin for type '%s'", name)
+}
+
+func loadProvisionPlugin(m plugin.Manager, name string) (provision.Provisioner, error) {
+	for _, p := range m.GetPlugins(provision.Type.String()) {
+		s := p.(provision.Provisioner)
+		if info := s.PluginInfo(); info.Name.Name == name {
+			return s, nil
+		}
+	}
+
+	return nil, fmt.Errorf("could not find any stage provisioner plugin for type '%s'", name)
 }

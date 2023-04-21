@@ -1,14 +1,16 @@
-package stage
+package provision
 
 import (
 	"github.com/hashicorp/go-plugin"
 	dodo "github.com/wabenet/dodo-core/pkg/plugin"
+	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
 	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
-const Type pluginType = "stage"
+const Type pluginType = "stage-provisioner"
 
 type pluginType string
 
@@ -21,11 +23,11 @@ func (t pluginType) GRPCClient() (plugin.Plugin, error) {
 }
 
 func (t pluginType) GRPCServer(p dodo.Plugin) (plugin.Plugin, error) {
-	config, ok := p.(Stage)
+	config, ok := p.(Provisioner)
 	if !ok {
 		return nil, dodo.InvalidError{
 			Plugin:  p.PluginInfo().Name,
-			Message: "plugin does not implement Stage API",
+			Message: "plugin does not implement Stage Provision API",
 		}
 	}
 	return &grpcPlugin{Impl: config}, nil
@@ -33,24 +35,22 @@ func (t pluginType) GRPCServer(p dodo.Plugin) (plugin.Plugin, error) {
 
 type grpcPlugin struct {
 	plugin.NetRPCUnsupportedPlugin
-	Impl Stage
+	Impl Provisioner
 }
 
 func (p *grpcPlugin) GRPCClient(_ context.Context, _ *plugin.GRPCBroker, conn *grpc.ClientConn) (interface{}, error) {
-	return &client{stageClient: stage.NewPluginClient(conn)}, nil
+	return &client{provisionClient: provision.NewPluginClient(conn)}, nil
 }
 
 func (p *grpcPlugin) GRPCServer(_ *plugin.GRPCBroker, s *grpc.Server) error {
-	stage.RegisterPluginServer(s, &server{impl: p.Impl})
+	provision.RegisterPluginServer(s, &server{impl: p.Impl})
 	return nil
 }
 
-type Stage interface {
+type Provisioner interface {
 	dodo.Plugin
 
-	GetStage(string) (*stage.GetStageResponse, error)
-	CreateStage(string) error
-	DeleteStage(string, bool, bool) error
-	StartStage(string) error
-	StopStage(string) error
+	ProvisionStage(*stage.StageInfo, *stage.SSHOptions) error
+	CleanStage(*stage.StageInfo) error
+	GetClient(*stage.StageInfo) (*proxy.Client, error)
 }

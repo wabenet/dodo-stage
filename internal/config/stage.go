@@ -6,8 +6,9 @@ import (
 )
 
 type Stage struct {
-	Name string
-	Type string
+	Name      string
+	Type      string
+	Provision *Provision
 }
 
 func StagesFromValue(v cue.Value) (map[string]*Stage, error) {
@@ -46,6 +47,14 @@ func StageFromStruct(name string, v cue.Value) (*Stage, error) {
 			return nil, err
 		} else {
 			out.Type = n
+		}
+	}
+
+	if p, ok := cuetils.Get(v, "provision"); ok {
+		if n, err := ProvisionFromValue(p); err != nil {
+			return nil, err
+		} else {
+			out.Provision = n
 		}
 	}
 

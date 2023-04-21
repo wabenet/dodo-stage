@@ -55,16 +55,3 @@ func (s *server) StartStage(ctx context.Context, request *stage.StartStageReques
 func (s *server) StopStage(ctx context.Context, request *stage.StopStageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, s.impl.StopStage(request.Name)
 }
-
-func (s *server) ProvisionStage(ctx context.Context, request *stage.ProvisionStageRequest) (*empty.Empty, error) {
-	return &empty.Empty{}, s.impl.ProvisionStage(request.Name)
-}
-
-func (s *server) GetProxy(ctx context.Context, request *stage.GetProxyRequest) (*stage.GetProxyResponse, error) {
-	pc, err := s.impl.GetClient(request.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	return &stage.GetProxyResponse{Config: pc.Config}, nil
-}

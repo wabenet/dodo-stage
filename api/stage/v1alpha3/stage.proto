@@ -17,9 +17,18 @@ service Plugin {
   rpc DeleteStage(DeleteStageRequest) returns (google.protobuf.Empty);
   rpc StartStage(StartStageRequest) returns (google.protobuf.Empty);
   rpc StopStage(StopStageRequest) returns (google.protobuf.Empty);
-  rpc ProvisionStage(ProvisionStageRequest) returns (google.protobuf.Empty);
+}
 
-  rpc GetProxy(GetProxyRequest) returns (GetProxyResponse);
+enum StageStatus {
+  NONE = 0;
+  DOWN = 1;
+  UP   = 2;
+}
+
+message StageInfo {
+  string      name     = 1;
+  string      hostname = 2;
+  StageStatus status   = 3;
 }
 
 message SSHOptions {
@@ -29,22 +38,13 @@ message SSHOptions {
   string private_key_file = 4;
 }
 
-message ProxyConfig {
-  string url       = 1;
-  string ca_path   = 2;
-  string cert_path = 3;
-  string key_path  = 4;
-}
-
 message GetStageRequest {
   string name = 1;
 }
 
 message GetStageResponse {
-  string name            = 1;
-  bool exist             = 2;
-  bool available         = 3;
-  SSHOptions ssh_options = 4;
+  StageInfo  info        = 1;
+  SSHOptions ssh_options = 2;
 }
 
 message CreateStageRequest {
@@ -52,9 +52,9 @@ message CreateStageRequest {
 }
 
 message DeleteStageRequest {
-  string name  = 1;
-  bool force   = 2;
-  bool volumes = 3;
+  string name    = 1;
+  bool   force   = 2;
+  bool   volumes = 3;
 }
 
 message StartStageRequest{
@@ -63,16 +63,4 @@ message StartStageRequest{
 
 message StopStageRequest {
   string name = 1;
-}
-
-message ProvisionStageRequest {
-  string name = 1;
-}
-
-message GetProxyRequest {
-  string name = 1;
-}
-
-message GetProxyResponse {
-  ProxyConfig config = 1;
 }

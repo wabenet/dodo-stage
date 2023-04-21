@@ -8,7 +8,6 @@ import (
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
-	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"golang.org/x/net/context"
 )
 
@@ -78,19 +77,4 @@ func (c *client) StopStage(name string) error {
 	_, err := c.stageClient.StopStage(context.Background(), &stage.StopStageRequest{Name: name})
 
 	return err
-}
-
-func (c *client) ProvisionStage(name string) error {
-	_, err := c.stageClient.ProvisionStage(context.Background(), &stage.ProvisionStageRequest{Name: name})
-
-	return err
-}
-
-func (c *client) GetClient(name string) (*proxy.Client, error) {
-	resp, err := c.stageClient.GetProxy(context.Background(), &stage.GetProxyRequest{Name: name})
-	if err != nil {
-		return nil, err
-	}
-
-	return proxy.NewClient(resp.Config)
 }
