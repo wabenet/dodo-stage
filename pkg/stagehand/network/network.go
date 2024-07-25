@@ -1,20 +1,20 @@
-package stagehand
+package network
 
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"net"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"text/template"
-	"time"
 )
 
 const (
+	Type = "configure-network"
+
 	dodoBegin = "##_DODO_BEGIN_##"
 	dodoEnd   = "##_DODO_END_##"
 
@@ -34,17 +34,23 @@ post-up ip route del default dev $IFACE || true
 `
 )
 
-type Network struct {
-	Device string
+type Action struct {
+	Device string `mapstructure:"device"`
 }
 
-func ConfigureNetwork(network Network) error {
+func (a *Action) Type() string {
+	return Type
+}
+
+func (a *Action) Execute() error {
+	log.Printf("configure host network...")
+
 	if _, err := exec.LookPath("nmcli"); err == nil {
-		if err := configureNetworkManager(network); err != nil {
+		if err := a.configureNetworkManager(); err != nil {
 			return err
 		}
 	} else {
-		if err := configureNetTools(network); err != nil {
+		if err := a.configureNetTools(); err != nil {
 			return err
 		}
 	}
@@ -52,24 +58,24 @@ func ConfigureNetwork(network Network) error {
 	return nil
 }
 
-func configureNetworkManager(network Network) error {
+func (a *Action) configureNetworkManager() error {
 	var buffer bytes.Buffer
 	templ, err := template.New("network").Parse(networkManagerConfig)
 	if err != nil {
 		return err
 	}
-	if err := templ.Execute(&buffer, network); err != nil {
+	if err := templ.Execute(&buffer, a); err != nil {
 		return err
 	}
-	configFile := filepath.Join(networkScripts, fmt.Sprintf("ifcfg-%s", network.Device))
+	configFile := filepath.Join(networkScripts, fmt.Sprintf("ifcfg-%s", a.Device))
 	if err := ioutil.WriteFile(configFile, buffer.Bytes(), 0644); err != nil {
 		return err
 	}
 
 	if nmcli, err := exec.LookPath("nmcli"); err == nil {
-		exec.Command(nmcli, "d", "disconnect", network.Device).Run()
+		exec.Command(nmcli, "d", "disconnect", a.Device).Run()
 	} else {
-		exec.Command("/sbin/ifdown", network.Device).Run()
+		exec.Command("/sbin/ifdown", a.Device).Run()
 	}
 
 	if systemctl, err := exec.LookPath("systemctl"); err == nil {
@@ -84,10 +90,10 @@ func configureNetworkManager(network Network) error {
 	return nil
 }
 
-func configureNetTools(network Network) error {
+func (a *Action) configureNetTools() error {
 	// Do not error check because the device might not exist
-	exec.Command("/sbin/ifdown", network.Device).Run()
-	exec.Command("/sbin/ip", "addr", "flush", "dev", network.Device).Run()
+	exec.Command("/sbin/ifdown", a.Device).Run()
+	exec.Command("/sbin/ip", "addr", "flush", "dev", a.Device).Run()
 
 	templ, err := template.New("network").Parse(networkToolsConfig)
 	if err != nil {
@@ -95,7 +101,7 @@ func configureNetTools(network Network) error {
 	}
 
 	var buffer bytes.Buffer
-	err = templ.Execute(&buffer, network)
+	err = templ.Execute(&buffer, a)
 	if err != nil {
 		return err
 	}
@@ -104,7 +110,7 @@ func configureNetTools(network Network) error {
 		return err
 	}
 
-	if err := exec.Command("/sbin/ifup", network.Device).Run(); err != nil {
+	if err := exec.Command("/sbin/ifup", a.Device).Run(); err != nil {
 		return err
 	}
 
@@ -169,26 +175,4 @@ func replaceBlockInFile(path string, beginMarker string, endMarker string, conte
 	}
 
 	return nil
-}
-
-func GetIP(device string) (string, error) {
-	for i := 0; i < 5; i++ {
-		iface, err := net.InterfaceByName(device)
-		if err != nil {
-			return "", err
-		}
-		addrs, err := iface.Addrs()
-		if err != nil {
-			return "", err
-		}
-		for _, addr := range addrs {
-			if a, ok := addr.(*net.IPNet); ok {
-				if ip := a.IP.To4(); ip != nil {
-					return ip.String(), nil
-				}
-			}
-		}
-		time.Sleep(time.Second)
-	}
-	return "", errors.New("could not get host-only IP address")
 }

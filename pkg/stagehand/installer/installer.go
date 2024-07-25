@@ -14,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/wabenet/dodo-core/pkg/config"
 	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
-	"github.com/wabenet/dodo-stage/pkg/stagehand"
 	"github.com/wabenet/dodo-stage/pkg/util/ssh"
 )
 
@@ -27,7 +26,7 @@ type SSHInstaller struct {
 	SSHOptions  *api.SSHOptions
 }
 
-func (i *SSHInstaller) Install(cfg *stagehand.Config) (*stagehand.ProvisionResult, error) {
+func (i *SSHInstaller) Install(cfg []byte) error {
 	localFile := filepath.Join(config.GetAppDir(), "tmp", "stagehand")
 
 	if strings.HasPrefix(i.DownloadUrl, "file://") {
@@ -35,29 +34,29 @@ func (i *SSHInstaller) Install(cfg *stagehand.Config) (*stagehand.ProvisionResul
 	} else {
 		_, err := grab.Get(localFile, i.DownloadUrl)
 		if err != nil {
-			return nil, fmt.Errorf("could not download stagehand from %s: %w", i.DownloadUrl, err)
+			return fmt.Errorf("could not download stagehand from %s: %w", i.DownloadUrl, err)
 		}
 	}
 
 	f, err := os.Open(localFile)
 	if err != nil {
-		return nil, fmt.Errorf("could not read file: %w", err)
+		return fmt.Errorf("could not read file: %w", err)
 	}
 
 	stat, err := f.Stat()
 	if err != nil {
-		return nil, fmt.Errorf("could not read file: %w", err)
+		return fmt.Errorf("could not read file: %w", err)
 	}
 
 	executor, err := ssh.NewExecutor(i.SSHOptions)
 	if err != nil {
-		return nil, fmt.Errorf("could not get SSH connection to stage: %w", err)
+		return fmt.Errorf("could not get SSH connection to stage: %w", err)
 	}
 	defer executor.Close()
 
 	log.L().Debug("write stagehand to stage")
 	if out, err := executor.Execute(fmt.Sprintf("mkdir -p %s", targetPath)); err != nil {
-		return nil, errors.Wrap(err, out)
+		return errors.Wrap(err, out)
 	}
 
 	if err := executor.WriteFile(&ssh.FileOptions{
@@ -66,22 +65,18 @@ func (i *SSHInstaller) Install(cfg *stagehand.Config) (*stagehand.ProvisionResul
 		Size:   stat.Size(),
 		Mode:   0755,
 	}); err != nil {
-		return nil, fmt.Errorf("could not write stagehand binary: %w", err)
+		return fmt.Errorf("could not write stagehand binary: %w", err)
 	}
 
-	encoded, err := stagehand.EncodeConfig(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate stagehand config: %w", err)
-	}
 	if err := executor.WriteFile(&ssh.FileOptions{
 		Path: path.Join(targetPath, "config.json"),
 		// TODO: this is a bug in ssh util. Fix it!
 		//Content: encoded,
-		Reader: bytes.NewReader(encoded),
-		Size:   int64(len(encoded)),
+		Reader: bytes.NewReader(cfg),
+		Size:   int64(len(cfg)),
 		Mode:   0644,
 	}); err != nil {
-		return nil, fmt.Errorf("could not write stagehand config: %w", err)
+		return fmt.Errorf("could not write stagehand config: %w", err)
 	}
 
 	// TODO: figure out whether we have/need sudo
@@ -92,13 +87,8 @@ func (i *SSHInstaller) Install(cfg *stagehand.Config) (*stagehand.ProvisionResul
 		path.Join(targetPath, "config.json"),
 	))
 	if err != nil {
-		return nil, errors.Wrap(err, out)
+		return errors.Wrap(err, out)
 	}
 
-	result, err := stagehand.DecodeResult([]byte(out))
-	if err != nil {
-		return nil, fmt.Errorf("could not read stagehand output: %w", err)
-	}
-
-	return result, nil
+	return nil
 }

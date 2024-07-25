@@ -15,6 +15,8 @@ import (
 )
 
 const (
+	Type = "install-docker"
+
 	Port = 2376
 
 	configDir = "/etc/docker"
@@ -36,16 +38,16 @@ DOCKER_OPTS='-H tcp://0.0.0.0:{{ .DockerPort }} -H unix:///var/run/docker.sock -
 `
 )
 
-type Config struct {
-	CA          []byte
-	ServerCert  []byte
-	ServerKey   []byte
-	Environment []string
-	Arguments   []string
-	User        string
+type Action struct {
+	CA          string   `mapstructure:"ca"`
+	ServerCert  string   `mapstructure:"cert"`
+	ServerKey   string   `mapstructure:"key"`
+	Environment []string `mapstructure:"environment"`
+	Arguments   []string `mapstructure::"arguments"`
+	User        string   `mapstructure:"user"`
 }
 
-type OptionsContext struct {
+type optionsContext struct {
 	DockerdBinary string
 	DockerPort    int
 	StorageDriver string
@@ -56,30 +58,38 @@ type OptionsContext struct {
 	DockerArgs    []string
 }
 
-func Provision(config *Config) error {
+func (a *Action) Type() string {
+	return Type
+}
+
+func (a *Action) Execute() error {
 	log.Printf("installing docker...")
-	if err := Install(); err != nil {
+	if err := install(); err != nil {
 		return err
 	}
 
 	log.Printf("configuring docker...")
-	if err := Configure(config); err != nil {
+	if err := configure(a); err != nil {
 		return err
 	}
 
-	if err := AddUser(config.User); err != nil {
+	if err := addUser(a.User); err != nil {
 		return err
 	}
 
 	log.Printf("starting docker...")
-	if err := Restart(); err != nil {
+	if err := restart(); err != nil {
+		return err
+	}
+
+	if err := validate(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func Install() error {
+func install() error {
 	if pacman, err := exec.LookPath("pacman"); err == nil {
 		return exec.Command(pacman, "-Sy", "--noconfirm", "--noprogressbar", "docker").Run()
 	} else if zypper, err := exec.LookPath("zypper"); err == nil {
@@ -107,7 +117,7 @@ func Install() error {
 	return nil
 }
 
-func Restart() error {
+func restart() error {
 	if systemctl, err := exec.LookPath("systemctl"); err == nil {
 		if err := exec.Command(systemctl, "daemon-reload").Run(); err != nil {
 			return err
@@ -126,7 +136,7 @@ func Restart() error {
 	return nil
 }
 
-func AddUser(user string) error {
+func addUser(user string) error {
 	if usermod, err := exec.LookPath("usermod"); err == nil {
 		return exec.Command(usermod, "-a", "-G", "docker", user).Run()
 	}
@@ -134,7 +144,7 @@ func AddUser(user string) error {
 	return nil
 }
 
-func Configure(config *Config) error {
+func configure(config *Action) error {
 	caPath := filepath.Join(configDir, "ca.pem")
 	certPath := filepath.Join(configDir, "server.pem")
 	keyPath := filepath.Join(configDir, "server-key.pem")
@@ -143,13 +153,13 @@ func Configure(config *Config) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(caPath, config.CA, 0644); err != nil {
+	if err := ioutil.WriteFile(caPath, []byte(config.CA), 0644); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(certPath, config.ServerCert, 0644); err != nil {
+	if err := ioutil.WriteFile(certPath, []byte(config.ServerCert), 0644); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(keyPath, config.ServerKey, 0644); err != nil {
+	if err := ioutil.WriteFile(keyPath, []byte(config.ServerKey), 0644); err != nil {
 		return err
 	}
 
@@ -158,7 +168,7 @@ func Configure(config *Config) error {
 		return err
 	}
 
-	context := OptionsContext{
+	context := optionsContext{
 		DockerdBinary: dockerd,
 		DockerPort:    Port,
 		StorageDriver: "overlay2",
@@ -196,7 +206,7 @@ func Configure(config *Config) error {
 	return nil
 }
 
-func CheckRunning() error {
+func validate() error {
 	for attempts := 0; attempts < 60; attempts++ {
 		if conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", Port)); err == nil {
 			conn.Close()

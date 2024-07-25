@@ -1,4 +1,4 @@
-package stagehand
+package proxy
 
 import (
 	"errors"
@@ -13,16 +13,11 @@ import (
 )
 
 const (
+	Type = "install-proxy-service"
+
 	configDir = "/etc/dodo"
 	binary    = "/usr/local/bin/dodo-stagehand"
 )
-
-type ProxyConfig struct {
-	Address    string
-	CA         []byte
-	ServerCert []byte
-	ServerKey  []byte
-}
 
 type program struct{}
 
@@ -34,7 +29,18 @@ func (p *program) Stop(_ service.Service) error {
 	return nil
 }
 
-func InstallProxyService(config *ProxyConfig) error {
+type Action struct {
+	Address    string `mapstructure:"address"`
+	CA         string `mapstructure:"ca"`
+	ServerCert string `mapstructure:"cert"`
+	ServerKey  string `mapstructure:"key"`
+}
+
+func (a *Action) Type() string {
+	return Type
+}
+
+func (a *Action) Execute() error {
 	caPath := filepath.Join(configDir, "ca.pem")
 	certPath := filepath.Join(configDir, "server.pem")
 	keyPath := filepath.Join(configDir, "server-key.pem")
@@ -43,13 +49,13 @@ func InstallProxyService(config *ProxyConfig) error {
 		return err
 	}
 
-	if err := os.WriteFile(caPath, config.CA, 0600); err != nil {
+	if err := os.WriteFile(caPath, []byte(a.CA), 0600); err != nil {
 		return err
 	}
-	if err := os.WriteFile(certPath, config.ServerCert, 0600); err != nil {
+	if err := os.WriteFile(certPath, []byte(a.ServerCert), 0600); err != nil {
 		return err
 	}
-	if err := os.WriteFile(keyPath, config.ServerKey, 0600); err != nil {
+	if err := os.WriteFile(keyPath, []byte(a.ServerKey), 0600); err != nil {
 		return err
 	}
 
@@ -58,7 +64,7 @@ func InstallProxyService(config *ProxyConfig) error {
 		Binary: binary,
 		Arguments: []string{
 			"proxyserver",
-			"--address", config.Address,
+			"--address", a.Address,
 			"--tls-ca-file", caPath,
 			"--tls-cert-file", certPath,
 			"--tls-key-file", keyPath,
@@ -85,6 +91,10 @@ func InstallProxyService(config *ProxyConfig) error {
 
 	log.Printf("run proxy...")
 	if err := svc.Start(); err != nil {
+		return err
+	}
+
+	if err := validate(); err != nil {
 		return err
 	}
 
@@ -122,7 +132,7 @@ func installSelf() error {
 	return nil
 }
 
-func CheckProxy() error {
+func validate() error {
 	for attempts := 0; attempts < 60; attempts++ {
 		if conn, err := net.Dial("tcp", "127.0.0.1:20257"); err == nil {
 			conn.Close()

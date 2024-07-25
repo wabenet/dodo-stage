@@ -1,9 +1,7 @@
 package command
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/wabenet/dodo-core/pkg/plugin"
@@ -60,27 +58,14 @@ func NewProvisionCommand(m plugin.Manager) *cobra.Command {
 		Use:   "provision",
 		Short: "prepares the stage for usage",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			configFile, err := ioutil.ReadFile(c.path)
+			config, err := ioutil.ReadFile(c.path)
 			if err != nil {
 				return err
 			}
 
-			config, err := stagehand.DecodeConfig(configFile)
-			if err != nil {
+			if err := stagehand.Provision(config); err != nil {
 				return err
 			}
-
-			result, err := stagehand.Provision(config)
-			if err != nil {
-				return err
-			}
-
-			output, err := stagehand.EncodeResult(result)
-			if err != nil {
-				return err
-			}
-
-			fmt.Fprintf(os.Stdout, string(output))
 
 			return nil
 		},

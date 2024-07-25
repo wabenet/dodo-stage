@@ -1,7 +1,8 @@
-package stagehand
+package ssh
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -9,8 +10,23 @@ import (
 	"strings"
 )
 
-func ConfigureSSHKeys(config *Config) error {
-	u, err := user.Lookup(config.DefaultUser)
+const (
+	Type = "add-ssh-key"
+)
+
+type Action struct {
+	DefaultUser    string   `mapstructure:"default_user"`
+	AuthorizedKeys []string `mapstructure:"authorized_keys"`
+}
+
+func (a *Action) Type() string {
+	return Type
+}
+
+func (a *Action) Execute() error {
+	log.Printf("replace SSH key...")
+
+	u, err := user.Lookup(a.DefaultUser)
 	if err != nil {
 		return err
 	}
@@ -24,7 +40,7 @@ func ConfigureSSHKeys(config *Config) error {
 	}
 
 	file := filepath.Join(u.HomeDir, ".ssh", "authorized_keys")
-	content := strings.Join(config.AuthorizedSSHKeys, "\n")
+	content := strings.Join(a.AuthorizedKeys, "\n")
 	if err := ioutil.WriteFile(file, []byte(content), 0600); err != nil {
 		return err
 	}
