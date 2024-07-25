@@ -6,8 +6,10 @@ import (
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-stage/internal/plugin/builder"
 	"github.com/wabenet/dodo-stage/internal/plugin/command"
+	provisionfixed "github.com/wabenet/dodo-stage/internal/plugin/provision-fixed"
 	stagehand "github.com/wabenet/dodo-stage/internal/plugin/provision-stagehand"
 	"github.com/wabenet/dodo-stage/internal/plugin/runtime"
+	stagefixed "github.com/wabenet/dodo-stage/internal/plugin/stage-fixed"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
@@ -17,7 +19,7 @@ func RunMe() int {
 
 	if os.Getenv(plugin.MagicCookieKey) == plugin.MagicCookieValue {
 		plugins := []plugin.Plugin{}
-		plugins = append(plugins, stagehand.New())
+		plugins = append(plugins, stagefixed.New(), provisionfixed.New(), stagehand.New())
 		plugins = append(plugins, runtime.GetAllRuntimePlugins(m)...)
 		plugins = append(plugins, builder.GetAllBuilderPlugins(m)...)
 
@@ -35,7 +37,7 @@ func RunMe() int {
 
 func IncludeMe(m plugin.Manager) {
 	plugins := []plugin.Plugin{command.New(m)}
-	plugins = append(plugins, stagehand.New())
+	plugins = append(plugins, stagefixed.New(), provisionfixed.New(), stagehand.New())
 	plugins = append(plugins, runtime.GetAllRuntimePlugins(m)...)
 	plugins = append(plugins, builder.GetAllBuilderPlugins(m)...)
 

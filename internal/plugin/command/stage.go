@@ -9,7 +9,7 @@ import (
 	core "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
-	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/internal/plugin/command/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 	"github.com/wabenet/dodo-stage/pkg/util/ssh"
@@ -78,7 +78,7 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			p, err := loadProvisionPlugin(m, "stagehand")
+			p, err := loadProvisionPlugin(m, conf.Provision.Type)
 			if err != nil {
 				return err
 			}
@@ -166,7 +166,7 @@ func NewProvisionCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			p, err := loadProvisionPlugin(m, "stagehand")
+			p, err := loadProvisionPlugin(m, conf.Provision.Type)
 			if err != nil {
 				return err
 			}

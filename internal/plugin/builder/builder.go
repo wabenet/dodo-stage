@@ -8,7 +8,7 @@ import (
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
-	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/internal/plugin/builder/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
@@ -102,7 +102,7 @@ func (b *ImageBuilder) get() (builder.ImageBuilder, error) {
 		return nil, err
 	}
 
-	p, err := loadProvisionPlugin(b.manager, "stagehand")
+	p, err := loadProvisionPlugin(b.manager, b.config.Provision.Type)
 	if err != nil {
 		return nil, err
 	}

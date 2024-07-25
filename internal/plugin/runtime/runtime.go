@@ -9,7 +9,7 @@ import (
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
-	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/internal/plugin/runtime/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
 )
@@ -157,7 +157,7 @@ func (c *ContainerRuntime) get() (runtime.ContainerRuntime, error) {
 		return nil, err
 	}
 
-	p, err := loadProvisionPlugin(c.manager, "stagehand")
+	p, err := loadProvisionPlugin(c.manager, c.config.Provision.Type)
 	if err != nil {
 		return nil, err
 	}

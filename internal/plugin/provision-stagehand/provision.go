@@ -17,7 +17,7 @@ import (
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	api "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
 	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
-	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/internal/plugin/provision-stagehand/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"

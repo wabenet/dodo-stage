@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wabenet/dodo-stage/internal/config"
+	"github.com/wabenet/dodo-stage/internal/plugin/command/config"
 )
 
 func TestStage(t *testing.T) {

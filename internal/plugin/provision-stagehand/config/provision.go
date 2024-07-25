@@ -7,6 +7,7 @@ import (
 )
 
 type Provision struct {
+	Type         string
 	StagehandURL string
 	Script       []string
 }
@@ -25,6 +26,14 @@ func ProvisionFromValue(v cue.Value) (*Provision, error) {
 
 func ProvisionFromStruct(v cue.Value) (*Provision, error) {
 	out := &Provision{}
+
+	if p, ok := cuetils.Get(v, "type"); ok {
+		if n, err := StringFromValue(p); err != nil {
+			return nil, err
+		} else {
+			out.Type = n
+		}
+	}
 
 	if p, ok := cuetils.Get(v, "stagehand_url"); ok {
 		if n, err := StringFromValue(p); err != nil {
