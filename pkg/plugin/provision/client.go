@@ -7,9 +7,8 @@ import (
 	log "github.com/hashicorp/go-hclog"
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
-	"github.com/wabenet/dodo-stage/pkg/proxy"
+	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha2"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"golang.org/x/net/context"
 )
 
@@ -53,10 +52,9 @@ func (c *client) Cleanup() {
 	}
 }
 
-func (c *client) ProvisionStage(info *stage.StageInfo, sshopts *stage.SSHOptions) error {
+func (c *client) ProvisionStage(name string, sshopts *stage.SSHOptions) error {
 	if _, err := c.provisionClient.ProvisionStage(context.Background(), &provision.ProvisionStageRequest{
-		Name:       info.Name,
-		Stage:      info,
+		Name:       name,
 		SshOptions: sshopts,
 	}); err != nil {
 		return fmt.Errorf("could not provision stage: %w", err)
@@ -65,25 +63,12 @@ func (c *client) ProvisionStage(info *stage.StageInfo, sshopts *stage.SSHOptions
 	return nil
 }
 
-func (c *client) CleanStage(info *stage.StageInfo) error {
+func (c *client) CleanStage(name string) error {
 	if _, err := c.provisionClient.CleanStage(context.Background(), &provision.CleanStageRequest{
-		Name:  info.Name,
-		Stage: info,
+		Name: name,
 	}); err != nil {
 		return fmt.Errorf("could not cleanup stage: %w", err)
 	}
 
 	return nil
-}
-
-func (c *client) GetClient(info *stage.StageInfo) (*proxy.Client, error) {
-	resp, err := c.provisionClient.GetProxy(context.Background(), &provision.GetProxyRequest{
-		Name:  info.Name,
-		Stage: info,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return proxy.NewClient(resp.Config)
 }

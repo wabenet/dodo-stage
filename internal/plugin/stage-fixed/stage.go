@@ -5,9 +5,10 @@ import (
 	coreapi "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	coreconfig "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"github.com/wabenet/dodo-stage/internal/plugin/stage-fixed/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
+	"github.com/wabenet/dodo-stage/pkg/proxy"
 )
 
 const (
@@ -51,8 +52,23 @@ func (s *Stage) GetStage(name string) (*api.GetStageResponse, error) {
 		return resp, err
 	}
 
-	if _, ok := stages[name]; ok {
-		resp.Info.Status = api.StageStatus_UP
+	if config, ok := stages[name]; ok {
+		resp.Info.Status = api.StageStatus_DOWN
+
+		resp.Connection = &api.ProxyConfig{
+			Url:      config.Address,
+			CaPath:   config.CaPath,
+			CertPath: config.CertPath,
+			KeyPath:  config.KeyPath,
+		}
+
+		resp.SshOptions = config.SSHOptions
+
+		if c, err := proxy.NewClient(resp.Connection); err == nil {
+			defer c.Close()
+
+			resp.Info.Status = api.StageStatus_UP
+		}
 	}
 
 	return resp, nil

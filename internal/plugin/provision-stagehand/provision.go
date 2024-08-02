@@ -1,22 +1,15 @@
 package provision
 
 import (
-	"crypto/tls"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
-	"net"
-	"net/url"
 	"os"
 	"path/filepath"
-	"time"
 
 	log "github.com/hashicorp/go-hclog"
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	coreconfig "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"github.com/wabenet/dodo-stage/internal/plugin/provision-stagehand/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/proxy"
@@ -27,6 +20,9 @@ import (
 const (
 	name        = "stagehand"
 	DefaultPort = 20257
+
+	permPrivateDir  = 0o700
+	permPrivateFile = 0o600
 )
 
 var _ provision.Provisioner = &Provisioner{}
@@ -55,13 +51,13 @@ func (*Provisioner) Init() (plugin.Config, error) {
 
 func (*Provisioner) Cleanup() {}
 
-func (p *Provisioner) ProvisionStage(info *stage.StageInfo, sshOpts *stage.SSHOptions) error {
+func (p *Provisioner) ProvisionStage(name string, sshOpts *stage.SSHOptions) error {
 	stages, err := config.GetAllStages(coreconfig.GetConfigFiles()...)
 	if err != nil {
 		return err
 	}
-	cfg := stages[info.Name]
 
+	cfg := stages[name]
 	inst := installer.SSHInstaller{
 		DownloadUrl: cfg.Provision.StagehandURL,
 		SSHOptions:  sshOpts,
@@ -69,7 +65,7 @@ func (p *Provisioner) ProvisionStage(info *stage.StageInfo, sshOpts *stage.SSHOp
 
 	// TODO: Allow extra options (e.g. replace ssh key?)
 	provisionConfig := &stagehand.Config{
-		Hostname:    info.Name,
+		Hostname:    name,
 		Script:      cfg.Provision.Script,
 		DefaultUser: sshOpts.Username,
 	}
@@ -79,49 +75,29 @@ func (p *Provisioner) ProvisionStage(info *stage.StageInfo, sshOpts *stage.SSHOp
 		return err
 	}
 
-	if err := os.MkdirAll(storagePath(info.Name), 0700); err != nil {
+	if err := os.MkdirAll(storagePath(name), permPrivateDir); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(filepath.Join(storagePath(info.Name), "ca.pem"), []byte(result.CA), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(storagePath(name), "ca.pem"), []byte(result.CA), permPrivateFile); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(storagePath(info.Name), "client.pem"), []byte(result.ClientCert), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(storagePath(name), "client.pem"), []byte(result.ClientCert), permPrivateFile); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(storagePath(info.Name), "client-key.pem"), []byte(result.ClientKey), 0600); err != nil {
-		return err
-	}
-
-	pemData, _ := pem.Decode([]byte(result.CA))
-	caCert, err := x509.ParseCertificate(pemData.Bytes)
-	if err != nil {
-		return err
-	}
-	certPool := x509.NewCertPool()
-	certPool.AddCert(caCert)
-
-	keyPair, err := tls.X509KeyPair([]byte(result.ClientCert), []byte(result.ClientKey))
-	if err != nil {
+	if err := os.WriteFile(filepath.Join(storagePath(name), "client-key.pem"), []byte(result.ClientKey), permPrivateFile); err != nil {
 		return err
 	}
 
-	parsed, err := url.Parse(fmt.Sprintf("tcp://%s:%d", info.Hostname, DefaultPort))
-	if err != nil {
-		return fmt.Errorf("could not parse URL: %w", err)
-	}
-
-	if _, err = tls.DialWithDialer(
-		&net.Dialer{Timeout: 20 * time.Second},
-		"tcp",
-		parsed.Host,
-		&tls.Config{
-			RootCAs:      certPool,
-			ServerName:   parsed.Hostname(),
-			Certificates: []tls.Certificate{keyPair},
-		},
-	); err != nil {
+	if client, err := proxy.NewClient(&stage.ProxyConfig{
+		Url:      fmt.Sprintf("tcp://%s:%d", result.IPAddress, DefaultPort),
+		CaPath:   filepath.Join(storagePath(name), "ca.pem"),
+		CertPath: filepath.Join(storagePath(name), "client.pem"),
+		KeyPath:  filepath.Join(storagePath(name), "client-key.pem"),
+	}); err != nil {
 		return err
+	} else {
+		defer client.Close()
 	}
 
 	log.L().Info("stage is fully provisioned")
@@ -129,37 +105,16 @@ func (p *Provisioner) ProvisionStage(info *stage.StageInfo, sshOpts *stage.SSHOp
 	return nil
 }
 
-func (p *Provisioner) GetClient(info *stage.StageInfo) (*proxy.Client, error) {
-	if p.proxyClient != nil {
-		return p.proxyClient, nil
-	}
-
-	pc, err := proxy.NewClient(&api.ProxyConfig{
-		Url:      fmt.Sprintf("tcp://%s:%d", info.Hostname, DefaultPort),
-		CaPath:   filepath.Join(storagePath(info.Name), "ca.pem"),
-		CertPath: filepath.Join(storagePath(info.Name), "client.pem"),
-		KeyPath:  filepath.Join(storagePath(info.Name), "client-key.pem"),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	p.proxyClient = pc
-
-	return p.proxyClient, nil
-
-}
-
-func (p *Provisioner) CleanStage(info *stage.StageInfo) error {
-	if err := os.Remove(filepath.Join(storagePath(info.Name), "ca.pem")); err != nil {
+func (p *Provisioner) CleanStage(name string) error {
+	if err := os.Remove(filepath.Join(storagePath(name), "ca.pem")); err != nil {
 		return err
 	}
 
-	if err := os.Remove(filepath.Join(storagePath(info.Name), "client.pem")); err != nil {
+	if err := os.Remove(filepath.Join(storagePath(name), "client.pem")); err != nil {
 		return err
 	}
 
-	if err := os.Remove(filepath.Join(storagePath(info.Name), "client-key.pem")); err != nil {
+	if err := os.Remove(filepath.Join(storagePath(name), "client-key.pem")); err != nil {
 		return err
 	}
 

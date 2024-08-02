@@ -7,7 +7,7 @@ import (
 
 	log "github.com/hashicorp/go-hclog"
 	"github.com/wabenet/dodo-core/pkg/ui"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"golang.org/x/crypto/ssh"
 )
 

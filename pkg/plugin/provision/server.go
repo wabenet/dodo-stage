@@ -5,7 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
-	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
+	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha2"
 	"golang.org/x/net/context"
 )
 
@@ -37,7 +37,7 @@ func (s *server) ResetPlugin(_ context.Context, _ *empty.Empty) (*empty.Empty, e
 }
 
 func (s *server) ProvisionStage(ctx context.Context, request *provision.ProvisionStageRequest) (*empty.Empty, error) {
-	if err := s.impl.ProvisionStage(request.Stage, request.SshOptions); err != nil {
+	if err := s.impl.ProvisionStage(request.Name, request.SshOptions); err != nil {
 		return nil, fmt.Errorf("could not provision stage: %w", err)
 	}
 
@@ -45,18 +45,9 @@ func (s *server) ProvisionStage(ctx context.Context, request *provision.Provisio
 }
 
 func (s *server) CleanStage(ctx context.Context, request *provision.CleanStageRequest) (*empty.Empty, error) {
-	if err := s.impl.CleanStage(request.Stage); err != nil {
+	if err := s.impl.CleanStage(request.Name); err != nil {
 		return nil, fmt.Errorf("could not cleanup stage: %w", err)
 	}
 
 	return &empty.Empty{}, nil
-}
-
-func (s *server) GetProxy(ctx context.Context, request *provision.GetProxyRequest) (*provision.GetProxyResponse, error) {
-	pc, err := s.impl.GetClient(request.Stage)
-	if err != nil {
-		return nil, err
-	}
-
-	return &provision.GetProxyResponse{Config: pc.Config}, nil
 }

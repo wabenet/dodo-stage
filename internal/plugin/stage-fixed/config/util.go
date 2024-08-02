@@ -23,3 +23,12 @@ func StringListFromValue(v cue.Value) ([]string, error) {
 
 	return out, err
 }
+
+func IntFromValue(v cue.Value) (int32, error) {
+	i64, err := v.Int64()
+	if err != nil {
+		return 0, err
+	}
+
+	return int32(i64), nil
+}

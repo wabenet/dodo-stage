@@ -13,7 +13,7 @@ import (
 	log "github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
 	"github.com/wabenet/dodo-core/pkg/config"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"
 	"github.com/wabenet/dodo-stage/pkg/util/ssh"
 )

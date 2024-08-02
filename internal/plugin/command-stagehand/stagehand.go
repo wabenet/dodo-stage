@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"github.com/wabenet/dodo-stage/pkg/proxy"
 	"github.com/wabenet/dodo-stage/pkg/stagehand"
 )
@@ -27,12 +27,13 @@ func New(m plugin.Manager) *Command {
 }
 
 func NewProxyServerCommand(m plugin.Manager) *cobra.Command {
-	var c provision.ProxyConfig
+	var cfg stage.ProxyConfig
+
 	cmd := &cobra.Command{
 		Use:   "proxyserver",
 		Short: "runs a grpc proxy server",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := proxy.NewServer(m, &c)
+			s, err := proxy.NewServer(m, &cfg)
 			if err != nil {
 				return err
 			}
@@ -42,10 +43,10 @@ func NewProxyServerCommand(m plugin.Manager) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&c.Url, "address", "a", "tcp://0.0.0.0:20257", "listen address")
-	flags.StringVar(&c.CaPath, "tls-ca-file", "", "ca file")
-	flags.StringVar(&c.CertPath, "tls-cert-file", "", "certificate file")
-	flags.StringVar(&c.KeyPath, "tls-key-file", "", "private key file")
+	flags.StringVarP(&cfg.Url, "address", "a", "tcp://0.0.0.0:20257", "listen address")
+	flags.StringVar(&cfg.CaPath, "tls-ca-file", "", "ca file")
+	flags.StringVar(&cfg.CertPath, "tls-cert-file", "", "certificate file")
+	flags.StringVar(&cfg.KeyPath, "tls-key-file", "", "private key file")
 
 	return cmd
 }

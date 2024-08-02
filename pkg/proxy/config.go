@@ -9,11 +9,11 @@ import (
 	"net/url"
 	"path/filepath"
 
-	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"google.golang.org/grpc/credentials"
 )
 
-func DialOptions(c *provision.ProxyConfig) (string, string, error) {
+func DialOptions(c *api.ProxyConfig) (string, string, error) {
 	u, err := url.Parse(c.Url)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid address: %w", err)
@@ -35,7 +35,7 @@ func DialOptions(c *provision.ProxyConfig) (string, string, error) {
 	return "", "", errors.New("invalid protocol")
 }
 
-func TLSServerOptions(c *provision.ProxyConfig) (credentials.TransportCredentials, error) {
+func TLSServerOptions(c *api.ProxyConfig) (credentials.TransportCredentials, error) {
 	tlsConfig := &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		ClientAuth:   tls.RequireAndVerifyClientCert,
@@ -62,7 +62,7 @@ func TLSServerOptions(c *provision.ProxyConfig) (credentials.TransportCredential
 	return credentials.NewTLS(tlsConfig), nil
 }
 
-func TLSClientOptions(c *provision.ProxyConfig) (credentials.TransportCredentials, error) {
+func TLSClientOptions(c *api.ProxyConfig) (credentials.TransportCredentials, error) {
 	tlsConfig := &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{},

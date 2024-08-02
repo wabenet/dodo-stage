@@ -7,7 +7,7 @@ import (
 	log "github.com/hashicorp/go-hclog"
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"golang.org/x/net/context"
 )
 

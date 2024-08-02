@@ -3,7 +3,7 @@ package stage
 import (
 	"github.com/hashicorp/go-plugin"
 	dodo "github.com/wabenet/dodo-core/pkg/plugin"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )

@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package com.wabenet.dodo.stage.v1alpha3;
+package com.wabenet.dodo.stage.v1alpha4;
 
-option go_package = "github.com/wabenet/dodo-stage/api/stage/v1alpha3";
+option go_package = "github.com/wabenet/dodo-stage/api/stage/v1alpha4";
 
 import "google/protobuf/empty.proto";
 import "core/v1alpha5/plugin.proto";
@@ -26,9 +26,8 @@ enum StageStatus {
 }
 
 message StageInfo {
-  string      name     = 1;
-  string      hostname = 2;
-  StageStatus status   = 3;
+  string      name   = 1;
+  StageStatus status = 3;
 }
 
 message SSHOptions {
@@ -38,13 +37,21 @@ message SSHOptions {
   string private_key_file = 4;
 }
 
+message ProxyConfig {
+  string url       = 1;
+  string ca_path   = 2;
+  string cert_path = 3;
+  string key_path  = 4;
+}
+
 message GetStageRequest {
   string name = 1;
 }
 
 message GetStageResponse {
-  StageInfo  info        = 1;
-  SSHOptions ssh_options = 2;
+  StageInfo   info        = 1;
+  SSHOptions  ssh_options = 2;
+  ProxyConfig connection  = 3;
 }
 
 message CreateStageRequest {

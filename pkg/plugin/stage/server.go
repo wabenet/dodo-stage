@@ -5,7 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	core "github.com/wabenet/dodo-core/api/core/v1alpha5"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"golang.org/x/net/context"
 )
 

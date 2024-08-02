@@ -12,6 +12,7 @@ import (
 	"github.com/wabenet/dodo-stage/internal/plugin/runtime/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
+	"github.com/wabenet/dodo-stage/pkg/proxy"
 )
 
 var _ runtime.ContainerRuntime = &ContainerRuntime{}
@@ -157,17 +158,13 @@ func (c *ContainerRuntime) get() (runtime.ContainerRuntime, error) {
 		return nil, err
 	}
 
-	p, err := loadProvisionPlugin(c.manager, c.config.Provision.Type)
-	if err != nil {
-		return nil, err
-	}
-
 	status, err := s.GetStage(c.name)
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := p.GetClient(status.Info)
+	// TODO: cache this between runtime and builder
+	client, err := proxy.NewClient(status.Connection)
 	if err != nil {
 		return nil, err
 	}

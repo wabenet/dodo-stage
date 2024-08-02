@@ -11,6 +11,7 @@ import (
 	"github.com/wabenet/dodo-stage/internal/plugin/builder/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
+	"github.com/wabenet/dodo-stage/pkg/proxy"
 )
 
 var _ builder.ImageBuilder = &ImageBuilder{}
@@ -102,17 +103,12 @@ func (b *ImageBuilder) get() (builder.ImageBuilder, error) {
 		return nil, err
 	}
 
-	p, err := loadProvisionPlugin(b.manager, b.config.Provision.Type)
-	if err != nil {
-		return nil, err
-	}
-
 	status, err := s.GetStage(b.name)
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := p.GetClient(status.Info)
+	client, err := proxy.NewClient(status.Connection)
 	if err != nil {
 		return nil, err
 	}

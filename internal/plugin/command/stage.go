@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	core "github.com/wabenet/dodo-core/pkg/config"
 	"github.com/wabenet/dodo-core/pkg/plugin"
-	api "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"github.com/wabenet/dodo-stage/internal/plugin/command/config"
 	"github.com/wabenet/dodo-stage/pkg/plugin/provision"
 	"github.com/wabenet/dodo-stage/pkg/plugin/stage"
@@ -103,7 +103,7 @@ func NewUpCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			if err := p.ProvisionStage(status.Info, status.SshOptions); err != nil {
+			if err := p.ProvisionStage(args[0], status.SshOptions); err != nil {
 				return err
 			}
 
@@ -185,7 +185,7 @@ func NewProvisionCommand(m plugin.Manager) *cobra.Command {
 				return err
 			}
 
-			if err := p.ProvisionStage(status.Info, status.SshOptions); err != nil {
+			if err := p.ProvisionStage(args[0], status.SshOptions); err != nil {
 				return err
 			}
 

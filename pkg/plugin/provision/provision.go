@@ -3,9 +3,8 @@ package provision
 import (
 	"github.com/hashicorp/go-plugin"
 	dodo "github.com/wabenet/dodo-core/pkg/plugin"
-	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
-	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha3"
-	"github.com/wabenet/dodo-stage/pkg/proxy"
+	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha2"
+	stage "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -50,7 +49,6 @@ func (p *grpcPlugin) GRPCServer(_ *plugin.GRPCBroker, s *grpc.Server) error {
 type Provisioner interface {
 	dodo.Plugin
 
-	ProvisionStage(*stage.StageInfo, *stage.SSHOptions) error
-	CleanStage(*stage.StageInfo) error
-	GetClient(*stage.StageInfo) (*proxy.Client, error)
+	ProvisionStage(name string, sshOptions *stage.SSHOptions) error
+	CleanStage(name string) error
 }

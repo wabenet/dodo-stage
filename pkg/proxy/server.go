@@ -9,7 +9,7 @@ import (
 	"github.com/wabenet/dodo-core/pkg/plugin"
 	"github.com/wabenet/dodo-core/pkg/plugin/builder"
 	"github.com/wabenet/dodo-core/pkg/plugin/runtime"
-	provision "github.com/wabenet/dodo-stage/api/provision/v1alpha1"
+	api "github.com/wabenet/dodo-stage/api/stage/v1alpha4"
 	"google.golang.org/grpc"
 )
 
@@ -19,8 +19,8 @@ type Server struct {
 	plugins  plugin.Manager
 }
 
-func NewServer(m plugin.Manager, c *provision.ProxyConfig) (*Server, error) {
-	protocol, addr, err := DialOptions(c)
+func NewServer(mgr plugin.Manager, config *api.ProxyConfig) (*Server, error) {
+	protocol, addr, err := DialOptions(config)
 	if err != nil {
 		return nil, fmt.Errorf("invalid connection config: %w", err)
 	}
@@ -29,7 +29,7 @@ func NewServer(m plugin.Manager, c *provision.ProxyConfig) (*Server, error) {
 		return nil, fmt.Errorf("server already exists at %s: %w", addr, err)
 	}
 
-	creds, err := TLSServerOptions(c)
+	creds, err := TLSServerOptions(config)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func NewServer(m plugin.Manager, c *provision.ProxyConfig) (*Server, error) {
 	}
 
 	return &Server{
-		plugins:  m,
+		plugins:  mgr,
 		listener: listener,
 		server:   grpc.NewServer(grpc.Creds(creds)),
 	}, nil
