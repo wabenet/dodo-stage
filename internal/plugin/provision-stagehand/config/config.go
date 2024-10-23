@@ -1,11 +1,26 @@
 package config
 
 import (
+	"fmt"
+
+	"cuelang.org/go/cue"
 	"github.com/hashicorp/go-multierror"
 	"github.com/wabenet/dodo-config/pkg/cuetils"
 	"github.com/wabenet/dodo-config/pkg/includes"
 	"github.com/wabenet/dodo-stage/pkg/spec"
 )
+
+type Stage struct {
+	Name      string
+	Type      string
+	Provision *Provision
+}
+
+type Provision struct {
+	Type         string
+	StagehandURL string
+	Script       []string
+}
 
 func GetAllStages(filenames ...string) (map[string]*Stage, error) {
 	var errs error
@@ -24,21 +39,63 @@ func GetAllStages(filenames ...string) (map[string]*Stage, error) {
 			continue
 		}
 
-		p, ok := cuetils.Get(value, "stages")
-		if !ok {
-			continue
-		}
-
-		s, err := StagesFromValue(p)
-		if err != nil {
+		if p, ok, err := cuetils.Extract(value, "stages", cuetils.Map(StageFromStruct)); err != nil {
 			errs = multierror.Append(errs, err)
 			continue
-		}
-
-		for name, stage := range s {
-			stages[name] = stage
+		} else if ok {
+			for name, stage := range p {
+				stages[name] = stage
+			}
 		}
 	}
 
 	return stages, errs
+}
+
+func StageFromStruct(name string, v cue.Value) (*Stage, error) {
+	out := &Stage{Name: name}
+
+	if p, ok, err := cuetils.Extract(v, "name", cuetils.String); err != nil {
+		return nil, fmt.Errorf("invalid config for %s: %w", "name", err)
+	} else if ok {
+		out.Name = p
+	}
+
+	if p, ok, err := cuetils.Extract(v, "type", cuetils.String); err != nil {
+		return nil, fmt.Errorf("invalid config for %s: %w", "type", err)
+	} else if ok {
+		out.Type = p
+	}
+
+	if p, ok, err := cuetils.Extract(v, "provision", ProvisionFromStruct); err != nil {
+		return nil, err
+	} else if ok {
+		out.Provision = p
+	}
+
+	return out, nil
+}
+
+func ProvisionFromStruct(_ string, v cue.Value) (*Provision, error) {
+	out := &Provision{}
+
+	if p, ok, err := cuetils.Extract(v, "type", cuetils.String); err != nil {
+		return nil, fmt.Errorf("invalid config for %s: %w", "type", err)
+	} else if ok {
+		out.Type = p
+	}
+
+	if p, ok, err := cuetils.Extract(v, "stagehand_url", cuetils.String); err != nil {
+		return nil, fmt.Errorf("invalid config for %s: %w", "stagehand_url", err)
+	} else if ok {
+		out.StagehandURL = p
+	}
+
+	if p, ok, err := cuetils.Extract(v, "script", cuetils.OneOrMore(cuetils.String)); err != nil {
+		return nil, fmt.Errorf("invalid config for %s: %w", "script", err)
+	} else if ok {
+		out.Script = p
+	}
+
+	return out, nil
 }
